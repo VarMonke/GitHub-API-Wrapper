@@ -11,6 +11,7 @@ __all__ = (
     'RepositoryNotFound',
     'ObjectNotFound',
     'NoAuthProvided',
+    'InvalidAuthCombination'
 )
 
 class APIError(Exception):
@@ -55,4 +56,9 @@ class NoAuthProvided(APIError):
     """Raised when no proper authorization or invalid authorization is given to the client"""
     def __init__(self):
         msg = 'Without authorization, this client doesn\'t have it\'s own repository'
+        super().__init__(msg)
+
+class InvalidAuthCombination(APIError):
+    def __init__(self):
+        msg = 'You must provide both a username and a user token or neither.'
         super().__init__(msg)
