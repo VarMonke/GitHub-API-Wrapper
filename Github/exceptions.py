@@ -4,7 +4,13 @@ import datetime
 
 __all__ = (
     'APIError',
-    'Ratelimited'
+    'Ratelimited',
+    'WillExceedRatelimit',
+    'UserNotFound',
+    'OrganizationNotFound',
+    'RepositoryNotFound',
+    'ObjectNotFound',
+    'NoAuthProvided',
 )
 
 class APIError(Exception):
@@ -40,13 +46,13 @@ class RepositoryNotFound(APIError):
         msg = 'Repository not found'
         super().__init__(msg)
 
+class ObjectNotFound(APIError):
+    def __init__(self):
+        msg = 'The requested object was not found, ensure spelling is correct before proceeding'
+        super().__init__(msg)
+
 class NoAuthProvided(APIError):
     """Raised when no proper authorization or invalid authorization is given to the client"""
     def __init__(self):
         msg = 'Without authorization, this client doesn\'t have it\'s own repository'
-        super().__init__(msg)
-
-class ObjectNotFound(APIError):
-    def __init__(self):
-        msg = 'The requested object was not found, ensure spelling is correct before proceeding'
         super().__init__(msg)
