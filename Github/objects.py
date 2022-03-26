@@ -8,17 +8,18 @@ import aiohttp
 from . import http
 
 __all__ = (
-        'User',
-        )
+    'User',
+)
 
-class APIOBJECT():
+class APIOBJECT:
     __slots__ = (
-        'response',
+        '_response',
+        '_state'
     )
 
-    def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
-        self.response = response
-        self.state = session
+    def __init__(self, response: dict[str, str | int], session: aiohttp.ClientSession) -> None:
+        self._response = response
+        self._state = session
 
 
     def __repr__(self) -> str:
@@ -26,12 +27,11 @@ class APIOBJECT():
 
 class _BaseUser(APIOBJECT):
     __slots__ = (
-        'reponse',
         'name',
         'id',
         )
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
-        super().__init__(response, session=session)
+        super().__init__(response, session)
         self.login = response.get('login')
         self.id = response.get('id')
 
