@@ -27,24 +27,25 @@ trace_config = aiohttp.TraceConfig()
 trace_config.on_request_start.append(on_req_start)
 trace_config.on_request_end.append(on_req_end)
 
-async def make_session(*, headers: dict[str, str]) -> aiohttp.ClientSession:
+async def make_session(*, headers: dict[str, str], authorization: aiohttp.BasicAuth | None) -> aiohttp.ClientSession:
     """This makes the ClientSession, attaching the trace config and ensuring a UA header is present."""
     if not headers.get('User-Agent'):
         headers['User-Agent'] = 'Github-API-Wrapper'
 
     session = aiohttp.ClientSession(
+        auth=authorization,
         headers=headers,
         trace_configs=[trace_config]
     )
     return session
 
 # user-related functions / utils
-GitHubUserData = dict[str, str|int]
+GitHubUserData = dict[str, str | int]
 
-async def get_user(session: aiohttp.ClientSession, *, _username: str) -> GitHubUserData:
+async def get_user(session: aiohttp.ClientSession, username: str) -> GitHubUserData:
     """Returns a user's public data in JSON format."""
-    result = await session.get(USERS_URL.format(_username))
+    result = await session.get(USERS_URL.format(username))
     if result.status == 200:
         return await result.json()
-    raise UserNotFound()
+    raise UserNotFound
 
