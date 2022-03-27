@@ -36,28 +36,26 @@ class Repository(APIOBJECT):
         keys = {key: value for key,value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if key == 'owner':
-                setattr(self, key,  PartialUser(value, session))
-                return
+                setattr(self, key, PartialUser(value, session))
+                continue
 
             if key == 'name':
                 setattr(self, key, value)
-                return
+                continue
 
             if '_at' in key and value is not None:
                 setattr(self, key, dt_formatter(value))
-                return
-            
+                continue
+
             else:
                 setattr(self, key, value)
                 continue
 
-            setattr(self, key, value)
-
     def __repr__(self) -> str:
-        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, created_at: {self.created_at}, default_branch: {self.default_branch}, license: {self.license}, >'
+        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, updated_at: {self.updated_at}, default_branch: {self.default_branch}, license: {self.license["name"]}>'
 
     @classmethod
-    async def repo_from_name(cls, session: aiohttp.ClientSession,owner: str, repo_name: str) -> 'Repository':
+    async def from_name(cls, session: aiohttp.ClientSession,owner: str, repo_name: str) -> 'Repository':
         """Fetch a repository from its name."""
         response = await http.get_repo_from_name(session, owner, repo_name)
         return Repository(response, session)

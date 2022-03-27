@@ -38,7 +38,7 @@ class User(_BaseUser):
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
         super().__init__(response, session)
         tmp = self.__slots__ + _BaseUser.__slots__
-        keys = {key: value for key,value in self.items() if key in tmp}
+        keys = {key: value for key,value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if '_at' in key and value is not None:
                 setattr(self, key, dt_formatter(value))
@@ -47,9 +47,7 @@ class User(_BaseUser):
                 setattr(self, key, value)
                 continue
 
-            setattr(self, key, value)
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<User; login: {self.login}, id: {self.id}, created_at: {self.created_at}>'
 
     @classmethod
@@ -62,7 +60,7 @@ class PartialUser(_BaseUser):
     __slots__ = (
         'site_admin',
         'html_url',
-        'created_at',
+        'avatar_url',
         ) + _BaseUser.__slots__
 
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
@@ -71,11 +69,10 @@ class PartialUser(_BaseUser):
         self.html_url = response.get('html_url')
         self.avatar_url = response.get('avatar_url')
 
+    def __repr__(self) -> str:
+        return f'<PartialUser; login: {self.login}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
 
-    def __repr__(self):
-        return f'<PartialUser; login: {self.login}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}, created_at: {self.created_at}>'
-
-    async def _get_user(self):
+    async def _get_user(self) -> User:
         """Upgrades the PartialUser to a User object.""" 
         response = await http.get_user(self.session, self.login)
         return User(response, self.session)

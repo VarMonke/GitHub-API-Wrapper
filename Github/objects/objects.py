@@ -21,7 +21,7 @@ class APIOBJECT:
         'session'
     )
 
-    def __init__(self, response: dict[str, str | int], session: aiohttp.ClientSession) -> None:
+    def __init__(self, response: dict[str, str | int | dict[str, str | int]], session: aiohttp.ClientSession) -> None:
         self._response = response
         self.session = session
 
