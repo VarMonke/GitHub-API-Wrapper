@@ -51,7 +51,7 @@ class Paginator:
         self.session = session
         self.response = response
         self.should_paginate = bool(self.response.headers.get('Link', False))
-        types: dict[str, User | ...] = {
+        types: dict[str, APIOBJECT] = {
             'user': User,
         }
         self.target_type = types[target_type]
