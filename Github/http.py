@@ -1,6 +1,9 @@
 #== http.py ==#
 
+
 import aiohttp
+from collections import namedtuple
+from datetime import datetime
 from types import SimpleNamespace
 import re
 
@@ -10,6 +13,7 @@ from .objects import APIOBJECT
 from .urls import *
 
 LINK_PARSING_RE = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
+Rates = namedtuple('Rates', ('remaining', 'used', 'total', 'reset_when', 'last_request'))
 
 # aiohttp request tracking / checking bits
 async def on_req_start(
@@ -18,7 +22,8 @@ async def on_req_start(
     params: aiohttp.TraceRequestStartParams
 ) -> None:
     """Before-request hook to make sure we don't overrun the ratelimit."""
-    print(repr(session), repr(ctx), repr(params))
+    #print(repr(session), repr(ctx), repr(params))
+    pass
 
 async def on_req_end(
     session: aiohttp.ClientSession,
@@ -26,7 +31,15 @@ async def on_req_end(
     params: aiohttp.TraceRequestEndParams
 ) -> None:
     """After-request hook to adjust remaining requests on this time frame."""
-    print(repr(session), repr(ctx), repr(params))
+    headers = params.response.headers
+
+    remaining   = headers['X-RateLimit-Remaining']
+    used        = headers['X-RateLimit-Used']
+    total       = headers['X-RateLimit-Limit']
+    reset_when  = datetime.fromtimestamp(int(headers['X-RateLimit-Reset']))
+    last_req    = datetime.utcnow()
+
+    session._rates = Rates(remaining, used, total, reset_when, last_req)
 
 trace_config = aiohttp.TraceConfig()
 trace_config.on_request_start.append(on_req_start)
@@ -42,6 +55,7 @@ async def make_session(*, headers: dict[str, str], authorization: aiohttp.BasicA
         headers=headers,
         trace_configs=[trace_config]
     )
+    session._rates = Rates('', '' , '', '', '')
     return session
 
 # pagination
