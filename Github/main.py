@@ -61,11 +61,11 @@ class Github:
         """Fetch a Github user from their username."""
         return User(await http.get_user(self.session, username), self.session)
 
-    async def get_repo(self, repo_name: str) -> 'Repo':
-        """Fetch a Github repository from it's name."""
-        pass
+    #async def get_repo(self, repo_name: str) -> 'Repository':
+    #    """Fetch a Github repository from it's name."""
+    #    pass
 
-    async def get_org(self, org_name: str) -> 'Org':
-        """Fetch a Github organization from it's name"""
-        pass
+    #async def get_org(self, org_name: str) -> 'Org':
+    #    """Fetch a Github organization from it's name"""
+    #    pass
 
