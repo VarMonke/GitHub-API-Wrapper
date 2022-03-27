@@ -61,6 +61,20 @@ class GHClient:
         self.has_started = True
         return self
 
+    def _cache(func, cache_type: str):
+        async def wrapper(self: 'GHClient', name: str):
+            if cache_type == 'user':
+                if (user := self._user_cache.get(name)):
+                    return user
+                else:
+                    return await func(self, name)
+            if cache_type == 'repo':
+                if (repo := self._repo_cache.get(name)):
+                    return repo
+                else:
+                    return await func(self, name)
+        return wrapper
+
     async def get_user(self, username: str) -> User:
         """Fetch a Github user from their username."""
         return User(await http.get_user(self.session, username), self.session)
