@@ -11,7 +11,9 @@ __all__ = (
     'RepositoryNotFound',
     'ObjectNotFound',
     'NoAuthProvided',
-    'InvalidAuthCombination'
+    'InvalidAuthCombination',
+    'AlreadyStarted',
+    'NotStarted'
 )
 
 class APIError(Exception):
@@ -61,4 +63,16 @@ class NoAuthProvided(APIError):
 class InvalidAuthCombination(APIError):
     def __init__(self):
         msg = 'You must provide both a username and a user token or neither.'
+        super().__init__(msg)
+
+class AlreadyStarted(APIError):
+    """Raised when start is called multiple times."""
+    def __init__(self):
+        msg = 'This client has already been started and cannot be started again.'
+        super().__init__(msg)
+
+class NotStarted(APIError):
+    """Raised when a call is made before start is called."""
+    def __init__(self):
+        msg = 'You must call `await <Github_instance>.start()` before making this call.'
         super().__init__(msg)
