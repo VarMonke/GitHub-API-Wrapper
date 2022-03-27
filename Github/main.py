@@ -8,7 +8,7 @@ from getpass import getpass
 import aiohttp
 
 import http
-from exceptions import AlreadyStarted, NotStarted
+import exceptions
 from objects import User, Repository
 
 class Github:
@@ -35,7 +35,7 @@ class Github:
 
     def check_limits(self, as_dict: bool = False) -> dict[str, str | int] | list[str]:
         if not self.has_started:
-            raise NotStarted
+            raise exceptions.NotStarted
         if not as_dict:
             output = []
             for key, value in self.session._rates._asdict().items():
@@ -52,7 +52,7 @@ class Github:
     async def start(self) -> None:
         """Main entry point to the wrapper, this creates the ClientSession."""
         if self.has_started:
-            raise AlreadyStarted
+            raise exceptions.AlreadyStarted
         self.session = await http.make_session(headers=self._headers, authorization=self._auth)
         self.has_started = True
         return self
