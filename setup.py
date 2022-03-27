@@ -23,5 +23,5 @@ setup(
     description='An asynchronous python wrapper around the GitHub API',
     long_description=readme,
     install_requires=requirements,
-    python_requires='>=3.10.2',
+    python_requires='>=3.10.0',
 )
