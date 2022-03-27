@@ -77,7 +77,7 @@ class User(_BaseUser):
         return f'<User; login: {self.login}, id: {self.id}, created_at: {repr_dt(self.created_at)}>'
 
     @classmethod
-    async def get_user(self, session: aiohttp.ClientSession, username: str) -> 'User':
+    async def get_user(cls, session: aiohttp.ClientSession, username: str) -> 'User':
         """Returns a User object from the username, with the mentions slots."""
         response = await http.get_user(session, username)
         return User(response, session)    
