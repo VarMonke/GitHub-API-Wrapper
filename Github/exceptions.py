@@ -28,23 +28,23 @@ class Ratelimited(APIError):
 class WillExceedRatelimit(APIError):
     """Raised when the library predicts the call will exceed the ratelimit, will abort the call by default."""
     def __init__(self, response, count):
-        msg = 'Performing this action will exceed the ratelimit, aborting.\n{} remaining available calls, calls to make: {}'
+        msg = 'Performing this action will exceed the ratelimit, aborting.\n{} remaining available calls, calls to make: {}.'
         msg = msg.format(response.header['X-RateLimit-Remaining'], count)
         super().__init__(msg)
 
 class UserNotFound(APIError):
     def __init__(self):
-        msg = 'User not found'
+        msg = 'User not found.'
         super().__init__(msg)
 
 class OrganizationNotFound(APIError):
     def __init__(self):
-        msg = 'Organization not found'
+        msg = 'Organization not found.'
         super().__init__(msg)
 
 class RepositoryNotFound(APIError):
     def __init__(self):
-        msg = 'Repository not found'
+        msg = 'Repository not found.'
         super().__init__(msg)
 
 class ObjectNotFound(APIError):
@@ -55,7 +55,7 @@ class ObjectNotFound(APIError):
 class NoAuthProvided(APIError):
     """Raised when no proper authorization or invalid authorization is given to the client"""
     def __init__(self):
-        msg = 'Without authorization, this client doesn\'t have it\'s own repository'
+        msg = 'Without authorization, this client doesn\'t have it\'s own repository.'
         super().__init__(msg)
 
 class InvalidAuthCombination(APIError):

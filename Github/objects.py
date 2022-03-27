@@ -11,15 +11,23 @@ __all__ = (
     'User',
 )
 
+def dt_formatter(time_str):
+    if time_str is not None:
+        return datetime.strptime(time_str, r"%Y-%m-%dT%H:%M:%SZ")
+    return None
+
+def repr_dt(time_str):
+    return time_str.strftime(r'%d-%m-%Y, %H:%M:%S')
+
 class APIOBJECT:
     __slots__ = (
         '_response',
-        '_state'
+        'session'
     )
 
     def __init__(self, response: dict[str, str | int], session: aiohttp.ClientSession) -> None:
         self._response = response
-        self._state = session
+        self.session = session
 
 
     def __repr__(self) -> str:
@@ -52,7 +60,28 @@ class User(_BaseUser):
         )
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
         super().__init__(response, session)
-        ...
+        tmp = self.__slots__
+        keys = {key: value for key,value in self.response.items() if key in tmp}
+        for key, value in key.items():
+            if key == 'login':
+                self.login = value
+                return
+
+            if '_at' in key and value is not None:
+                setattr(self, key, dt_formatter(value))
+                return
+
+            setattr(self, key, value)
+
+    def __repr__(self):
+        return f'<User; login: {self.login}, id: {self.id}, created_at: {repr_dt(self.created_at)}>'
+
+    @classmethod
+    async def get_user(self, session: aiohttp.ClientSession, username: str) -> 'User':
+        """Returns a User object from the username, with the mentions slots."""
+        response = await http.get_user(session, username)
+        return User(response, session)
+
 
 
 
