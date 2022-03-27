@@ -80,11 +80,4 @@ class User(_BaseUser):
     async def get_user(self, session: aiohttp.ClientSession, username: str) -> 'User':
         """Returns a User object from the username, with the mentions slots."""
         response = await http.get_user(session, username)
-        return User(response, session)
-
-
-
-
-
-
-    
+        return User(response, session)    

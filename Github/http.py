@@ -48,4 +48,3 @@ async def get_user(session: aiohttp.ClientSession, username: str) -> GitHubUserD
     if result.status == 200:
         return await result.json()
     raise UserNotFound
-
