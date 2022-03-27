@@ -8,11 +8,12 @@ from getpass import getpass
 import aiohttp
 
 from . import http
+from .exceptions import AlreadyStarted, NotStarted
 from .objects import User
 
 class Github:
     _auth = None
-    session = aiohttp.ClientSession
+    has_started = False
     def __init__(
         self,
         *,
@@ -26,8 +27,21 @@ class Github:
             auth_token = getpass.getpass('Enter your token: ')
             self._auth = aiohttp.BasicAuth(username, auth_token)
 
+    def __await__(self):
+        return self.start().__await__()
+
     def __repr__(self) -> str:
         return f'<Github Client; has_auth={bool(self._auth)}>'
+
+    def check_limits(self, as_dict: bool = False) -> dict[str, str | int] | list[str]:
+        if not self.has_started:
+            raise NotStarted
+        if not as_dict:
+            output = []
+            for key, value in self.session._rates._asdict().items():
+                output.append(f'{key} : {value}')
+            return output
+        return self.session._rates._asdict()
 
     def update_auth(self) -> None:
         """Allows you to input auth information after instantiating the client."""
@@ -37,7 +51,11 @@ class Github:
 
     async def start(self) -> None:
         """Main entry point to the wrapper, this creates the ClientSession."""
+        if self.has_started:
+            raise AlreadyStarted
         self.session = await http.make_session(headers=self._headers, authorization=self._auth)
+        self.has_started = True
+        return self
 
     async def get_user(self, username: str) -> User:
         """Fetch a Github user from their username."""
