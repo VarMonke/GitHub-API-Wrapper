@@ -1,6 +1,5 @@
 #== objects.py ==#
 
-from collections import namedtuple
 from datetime import datetime
 
 import aiohttp
@@ -35,7 +34,7 @@ class APIOBJECT:
 
 class _BaseUser(APIOBJECT):
     __slots__ = (
-        'name',
+        'login',
         'id',
         )
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
@@ -55,21 +54,22 @@ class User(_BaseUser):
         'public_repos',
         'public_gists',
         'followers',
-        'following'
+        'following',
         'created_at',
         )
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
         super().__init__(response, session)
-        tmp = self.__slots__
-        keys = {key: value for key,value in self.response.items() if key in tmp}
+        tmp = self.__slots__ + _BaseUser.__slots__
+        keys = {key: value for key,value in self._response.items() if key in tmp}
         for key, value in keys.items():
-            if key == 'login':
-                self.login = value
-                return
-
             if '_at' in key and value is not None:
                 setattr(self, key, dt_formatter(value))
-                return
+                continue
+            else:
+                setattr(self, key, value)
+                continue
+            
+
 
             setattr(self, key, value)
 
@@ -80,4 +80,4 @@ class User(_BaseUser):
     async def get_user(cls, session: aiohttp.ClientSession, username: str) -> 'User':
         """Returns a User object from the username, with the mentions slots."""
         response = await http.get_user(session, username)
-        return User(response, session)    
+        return User(response, session)
