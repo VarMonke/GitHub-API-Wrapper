@@ -1,17 +1,18 @@
 #== main.py ==#
 
 __all__ = (
-    'Github',
+    'GHClient',
 )
 
 from getpass import getpass
 import aiohttp
+import asyncio
 
-import http
-import exceptions
-from objects import User, Repository
+from . import http
+from . import exceptions
+from .objects import User, Repository
 
-class Github:
+class GHClient:
     _auth = None
     has_started = False
     def __init__(
@@ -24,14 +25,17 @@ class Github:
         self._headers = custom_headers
         if using_auth:
             username = input('Enter your username: ') #these two lines are blocking, but it's probably not a problem
-            auth_token = getpass.getpass('Enter your token: ')
+            auth_token = getpass('Enter your token: ')
             self._auth = aiohttp.BasicAuth(username, auth_token)
 
-    def __await__(self):
+    def __await__(self) -> 'GHClient':
         return self.start().__await__()
 
     def __repr__(self) -> str:
         return f'<Github Client; has_auth={bool(self._auth)}>'
+
+    def __del__(self):
+        asyncio.create_task(self.session.close())
 
     def check_limits(self, as_dict: bool = False) -> dict[str, str | int] | list[str]:
         if not self.has_started:
@@ -49,7 +53,7 @@ class Github:
         token = getpass('Enter your token: ')
         self._auth = aiohttp.BasicAuth(username, token)
 
-    async def start(self) -> None:
+    async def start(self) -> 'GHClient':
         """Main entry point to the wrapper, this creates the ClientSession."""
         if self.has_started:
             raise exceptions.AlreadyStarted
