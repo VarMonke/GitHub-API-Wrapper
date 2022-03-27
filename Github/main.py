@@ -7,9 +7,9 @@ __all__ = (
 from getpass import getpass
 import aiohttp
 
-from . import http
-from .exceptions import AlreadyStarted, NotStarted
-from .objects import User, Repository
+import http
+from exceptions import AlreadyStarted, NotStarted
+from objects import User, Repository
 
 class Github:
     _auth = None
