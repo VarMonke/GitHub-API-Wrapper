@@ -62,7 +62,7 @@ class User(_BaseUser):
         super().__init__(response, session)
         tmp = self.__slots__
         keys = {key: value for key,value in self.response.items() if key in tmp}
-        for key, value in key.items():
+        for key, value in keys.items():
             if key == 'login':
                 self.login = value
                 return
