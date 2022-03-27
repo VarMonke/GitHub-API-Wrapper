@@ -9,7 +9,7 @@ import aiohttp
 
 from . import http
 from .exceptions import AlreadyStarted, NotStarted
-from .objects import User
+from .objects import User, Repository
 
 class Github:
     _auth = None
@@ -61,7 +61,7 @@ class Github:
         """Fetch a Github user from their username."""
         return User(await http.get_user(self.session, username), self.session)
 
-    async def get_repo(self, repo_name: str) -> 'Repo':
+    async def get_repo(self, repo_name: str) -> Repository:
         """Fetch a Github repository from it's name."""
         pass
 

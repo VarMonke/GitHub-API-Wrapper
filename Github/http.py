@@ -9,7 +9,6 @@ import re
 
 from .exceptions import *
 from .objects import *
-from .objects import APIOBJECT
 from .urls import *
 
 LINK_PARSING_RE = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
