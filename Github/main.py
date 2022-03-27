@@ -12,7 +12,7 @@ from .objects import User
 
 class Github:
     _auth = None
-    _state = aiohttp.ClientSession
+    session = aiohttp.ClientSession
     def __init__(
         self,
         *,
@@ -28,8 +28,8 @@ class Github:
 
     async def start(self):
         """Main entry point to the wrapper, this creates the ClientSession."""
-        self._state = await http.make_session(headers=self._headers, authorization=self._auth)
+        self.session = await http.make_session(headers=self._headers, authorization=self._auth)
 
     async def get_user(self, username: str):
         """Fetch a Github user from their username."""
-        return User(await http.get_user(self._state, username), self._state)
+        return User(await http.get_user(self.session, username), self.session)
