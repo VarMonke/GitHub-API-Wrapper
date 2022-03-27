@@ -3,7 +3,7 @@
 import aiohttp
 
 from .objects import APIOBJECT, dt_formatter
-from . import PartialUser
+from . import PartialUser, User
 from .. import http
 
 __all__ = (
@@ -33,17 +33,31 @@ class Repository(APIOBJECT):
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
         super().__init__(response, session)
         tmp = self.__slots__ + APIOBJECT.__slots__
-        keys = {key: value for key,value in self.response.items() if key in tmp}
-        for key, value in key.items():
+        keys = {key: value for key,value in self._response.items() if key in tmp}
+        for key, value in keys.items():
             if key == 'owner':
-                self.owner = PartialUser(value, self.session)
+                setattr(self, key,  PartialUser(value, session))
+                return
+
+            if key == 'name':
+                setattr(self, key, value)
                 return
 
             if '_at' in key and value is not None:
                 setattr(self, key, dt_formatter(value))
                 return
+            
+            else:
+                setattr(self, key, value)
+                continue
 
             setattr(self, key, value)
 
     def __repr__(self) -> str:
         return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, created_at: {self.created_at}, default_branch: {self.default_branch}, license: {self.license}, >'
+
+    @classmethod
+    async def repo_from_name(cls, session: aiohttp.ClientSession,owner: str, repo_name: str) -> 'Repository':
+        """Fetch a repository from its name."""
+        response = await http.get_repo_from_name(session, owner, repo_name)
+        return Repository(response, session)

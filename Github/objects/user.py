@@ -38,7 +38,7 @@ class User(_BaseUser):
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
         super().__init__(response, session)
         tmp = self.__slots__ + _BaseUser.__slots__
-        keys = {key: value for key,value in self._response.items() if key in tmp}
+        keys = {key: value for key,value in self.items() if key in tmp}
         for key, value in keys.items():
             if '_at' in key and value is not None:
                 setattr(self, key, dt_formatter(value))

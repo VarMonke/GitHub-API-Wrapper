@@ -19,3 +19,11 @@ USER_GISTS_URL = USERS_URL + '/gists'
 USER_FOLLOWERS_URL = USERS_URL + '/followers'
 
 USER_FOLLOWING_URL = USERS_URL + '/following'
+
+
+#== repo urls ==#
+REPOS_URL = BASE_URL + '/repos/{0}' # repos of a user
+
+#REPO_URL = REPOS_URL + '/{1}' # a specific repo
+
+REPO_URL = BASE_URL + '/repos/{0}/{1}' # a specific repo

@@ -15,6 +15,7 @@ __all__ = (
     'make_session',
     'Paginator',
     'get_user',
+    'get_repo_from_name',
 )
 
 
@@ -118,3 +119,13 @@ async def get_user(session: aiohttp.ClientSession, username: str) -> GitHubUserD
     if result.status == 200:
         return await result.json()
     raise UserNotFound
+
+
+# repo-related functions / utils
+
+async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo_name: str):
+    """Returns a Repo object from the given owner and repo name."""
+    result = await session.get(REPO_URL.format(owner, repo_name))
+    if result.status == 200:
+        return await result.json()
+    raise RepositoryNotFound
