@@ -46,4 +46,4 @@ class Repository(APIOBJECT):
             setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, created_at: {dt_formatter(self.created_at)}, default_branch: {self.default_branch}, license: {self.license}, >'
+        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, created_at: {self.created_at}, default_branch: {self.default_branch}, license: {self.license}, >'

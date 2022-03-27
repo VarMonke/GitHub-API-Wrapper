@@ -50,7 +50,7 @@ class User(_BaseUser):
             setattr(self, key, value)
 
     def __repr__(self):
-        return f'<User; login: {self.login}, id: {self.id}, created_at: {dt_formatter(self.created_at)}>'
+        return f'<User; login: {self.login}, id: {self.id}, created_at: {self.created_at}>'
 
     @classmethod
     async def get_user(cls, session: aiohttp.ClientSession, username: str) -> 'User':
@@ -73,7 +73,7 @@ class PartialUser(_BaseUser):
 
 
     def __repr__(self):
-        return f'<PartialUser; login: {self.login}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}, created_at: {dt_formatter(self.created_at)}>'
+        return f'<PartialUser; login: {self.login}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}, created_at: {self.created_at}>'
 
     async def _get_user(self):
         """Upgrades the PartialUser to a User object.""" 
