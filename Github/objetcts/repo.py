@@ -34,7 +34,7 @@ class Repository(APIOBJECT):
         super().__init__(response, session)
         tmp = self.__slots__ + APIOBJECT.__slots__
         keys = {key: value for key,value in self._response.items() if key in tmp}
-        for key, value in key.items():
+        for key, value in keys.items():
             if key == 'owner':
                 self.owner = PartialUser(value, self.session)
                 return
