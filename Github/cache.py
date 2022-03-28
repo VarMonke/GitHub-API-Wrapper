@@ -7,7 +7,7 @@ __all__ = (
 )
 
 from collections import deque
-from .objects import APIOBJECT, User, Repository
+from .objects import APIOBJECT, User, Repository, Organization
 
 
 class _BaseCache(dict):
@@ -72,4 +72,18 @@ class RepoCache(_BaseCache):
             self[key] = value
 
 class OrgCache(_BaseCache):
-    pass
+    def __getitem__(self, __k: str) -> Organization:
+        target = self._lru_keys.pop(self._lru_keys.index(__k))
+        self._lru_keys.appendleft(target)
+        return super().__getitem__(__k)
+
+    def __setitem__(self, __k: str, __v: Organization) -> None:
+        if len(self) == self._max_size:
+            to_pop = self._lru_keys.pop(-1)
+            del self[to_pop]
+        self._lru_keys.appendleft(__k)
+        return super().__setitem__(__k, __v)
+
+    def update(self, *args, **kwargs) -> None:
+        for key, value in dict(*args, **kwargs).iteritems():
+            self[key] = value
