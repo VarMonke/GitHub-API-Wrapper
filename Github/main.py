@@ -80,7 +80,7 @@ class GHClient:
         return User(await http.get_user(self.session, username), self.session)
 
     async def get_repo(self, owner: str, repo_name: str) -> Repository:
-        """Fetch aGithub repository from it's name."""
+        """Fetch a Github repository from it's name."""
         return Repository(await http.get_repo_from_name(self.session, owner, repo_name), self.session)
 
     async def get_org(self, org_name: str) -> Organization:

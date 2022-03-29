@@ -28,7 +28,7 @@ class Repository(APIOBJECT):
         'stargazers_count',
         'watchers_count',
         'forks',
-        'license'
+        'license',
         )
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
         super().__init__(response, session)
@@ -47,12 +47,15 @@ class Repository(APIOBJECT):
                 setattr(self, key, dt_formatter(value))
                 continue
 
+            if 'license' in key and value is None:
+                setattr(self, key, None)
+
             else:
                 setattr(self, key, value)
                 continue
 
     def __repr__(self) -> str:
-        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, updated_at: {self.updated_at}, default_branch: {self.default_branch}, license: {self.license["name"]}>'
+        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, updated_at: {self.updated_at}, default_branch: {self.default_branch}, license: {self.license}>'
 
     @classmethod
     async def from_name(cls, session: aiohttp.ClientSession,owner: str, repo_name: str) -> 'Repository':
