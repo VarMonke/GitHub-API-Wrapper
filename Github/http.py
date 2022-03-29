@@ -129,3 +129,12 @@ async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo_na
     if result.status == 200:
         return await result.json()
     raise RepositoryNotFound
+
+# org-related functions / utils
+
+async def get_org(session: aiohttp.ClientSession, org_name: str):
+    """Returns an org's public data in JSON format."""
+    result = await session.get(ORG_URL.format(org_name))
+    if result.status == 200:
+        return await result.json()
+    raise OrganizationNotFound

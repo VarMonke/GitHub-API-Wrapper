@@ -85,5 +85,5 @@ class GHClient:
 
     async def get_org(self, org_name: str) -> Organization:
         """Fetch a Github organization from it's name"""
-        pass
+        return Organization(await http.get_org(self.session, org_name), self.session)
 

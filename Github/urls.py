@@ -24,6 +24,8 @@ USER_FOLLOWING_URL = USERS_URL + '/following'
 #== repo urls ==#
 REPOS_URL = BASE_URL + '/repos/{0}' # repos of a user
 
-#REPO_URL = REPOS_URL + '/{1}' # a specific repo
-
 REPO_URL = BASE_URL + '/repos/{0}/{1}' # a specific repo
+
+
+#== org urls ==#
+ORG_URL = BASE_URL + '/orgs/{0}'
