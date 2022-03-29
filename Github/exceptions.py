@@ -51,7 +51,7 @@ class RepositoryNotFound(APIError):
 
 class ObjectNotFound(APIError):
     def __init__(self):
-        msg = 'The requested object was not found, ensure spelling is correct before proceeding'
+        msg = 'The requested object was not found, ensure spelling is correct before proceeding.'
         super().__init__(msg)
 
 class NoAuthProvided(APIError):
