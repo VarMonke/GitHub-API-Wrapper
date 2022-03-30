@@ -49,6 +49,11 @@ class Repository(APIOBJECT):
 
             if 'license' in key and value is None:
                 setattr(self, key, None)
+                continue
+
+            if 'license' in key and value is not None:
+                setattr(self, key, value['name'])
+                continue
 
             else:
                 setattr(self, key, value)
