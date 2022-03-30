@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import re
 
 from .exceptions import *
+from .exceptions import IssueNotFound
 from .objects import *
 from .urls import *
 
@@ -129,6 +130,13 @@ async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo_na
     if result.status == 200:
         return await result.json()
     raise RepositoryNotFound
+
+async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo_name: str, issue_number: int) -> dict[str, str]:
+    """Returns a single issue from the given owner and repo name."""
+    result = await session.get(REPO_ISSUE_URL.format(owner, repo_name, issue_number))
+    if result.status == 200:
+        return await result.json()
+    raise IssueNotFound
 
 # org-related functions / utils
 

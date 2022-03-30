@@ -54,6 +54,11 @@ class ObjectNotFound(APIError):
         msg = 'The requested object was not found, ensure spelling is correct before proceeding.'
         super().__init__(msg)
 
+class IssueNotFound(APIError):
+    def __init__(self):
+        msg = 'The requested issue was not found, ensure spelling is correct before proceeding.'
+        super().__init__(msg)
+
 class NoAuthProvided(APIError):
     """Raised when no proper authorization or invalid authorization is given to the client"""
     def __init__(self):

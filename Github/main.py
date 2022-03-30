@@ -10,7 +10,7 @@ import asyncio
 
 from . import http
 from . import exceptions
-from .objects import User, Repository, Organization
+from .objects import *
 
 class GHClient:
     _auth = None
@@ -82,6 +82,10 @@ class GHClient:
     async def get_repo(self, owner: str, repo_name: str) -> Repository:
         """Fetch a Github repository from it's name."""
         return Repository(await http.get_repo_from_name(self.session, owner, repo_name), self.session)
+
+    async def get_repo_issue(self, owner: str, repo_name: str, issue_number: int) -> Repository:
+        """Fetch a Github repository from it's name."""
+        return repo.Issue(await http.get_repo_issue(self.session, owner, repo_name, issue_number), self.session)
 
     async def get_org(self, org_name: str) -> Organization:
         """Fetch a Github organization from it's name"""

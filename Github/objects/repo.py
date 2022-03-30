@@ -67,3 +67,38 @@ class Repository(APIOBJECT):
         """Fetch a repository from its name."""
         response = await http.get_repo_from_name(session, owner, repo_name)
         return Repository(response, session)
+
+
+class Issue(APIOBJECT):
+    __slots__ = (
+        'id',
+        'title',
+        'user',
+        'labels',
+        'state',
+        'created_at',
+        'closed_by',
+    )
+
+    def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
+        tmp = self.__slots__ + APIOBJECT.__slots__
+        keys = {key: value for key,value in response.items() if key in tmp}
+        for key, value in keys.items():
+            if key == 'user':
+                setattr(self, key, PartialUser(value, session))
+                continue
+
+            if key == 'labels':
+                setattr(self, key, [label['name'] for label in value])
+                continue
+
+            if key == 'closed_by':
+                setattr(self, key, User(value, session))
+                continue
+
+            else:
+                setattr(self, key, value)
+                continue
+
+    def __repr__(self) -> str:
+        return f'<Issue; id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'

@@ -26,6 +26,8 @@ REPOS_URL = BASE_URL + '/repos/{0}' # repos of a user
 
 REPO_URL = BASE_URL + '/repos/{0}/{1}' # a specific repo
 
+REPO_ISSUE_URL = REPO_URL + '/issues/{2}' # a specific issue
+
 
 #== org urls ==#
 ORG_URL = BASE_URL + '/orgs/{0}'
