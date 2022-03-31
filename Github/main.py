@@ -8,6 +8,8 @@ from getpass import getpass
 import aiohttp
 import asyncio
 
+from Github.objects.repo import Issue
+
 from . import http
 from . import exceptions
 from .objects import *
@@ -75,19 +77,27 @@ class GHClient:
                     return await func(self, name)
         return wrapper
 
-    async def get_user(self, username: str) -> User:
+    async def get_user(self, **kwargs) -> User:
         """Fetch a Github user from their username."""
+        username = kwargs.get('user')
         return User(await http.get_user(self.session, username), self.session)
 
-    async def get_repo(self, owner: str, repo_name: str) -> Repository:
+    async def get_repo(self, **kwargs) -> Repository:
         """Fetch a Github repository from it's name."""
+        owner = kwargs.get('owner')
+        repo_name = kwargs.get('repo')
         return Repository(await http.get_repo_from_name(self.session, owner, repo_name), self.session)
 
-    async def get_repo_issue(self, owner: str, repo_name: str, issue_number: int) -> Repository:
+    async def get_repo_issue(self, **kwargs) -> Issue:
         """Fetch a Github repository from it's name."""
-        return repo.Issue(await http.get_repo_issue(self.session, owner, repo_name, issue_number), self.session)
+        owner = kwargs.get('owner')
+        repo_name = kwargs.get('repo')
+        issue_number = kwargs.get('issue')
+        return Issue(await http.get_repo_issue(self.session, owner, repo_name, issue_number), self.session)
 
-    async def get_org(self, org_name: str) -> Organization:
+    async def get_org(self, **kwargs) -> Organization:
         """Fetch a Github organization from it's name"""
+        org_name = kwargs.get('org')
         return Organization(await http.get_org(self.session, org_name), self.session)
+
 
