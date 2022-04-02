@@ -8,6 +8,7 @@ from .. import http
 
 __all__ = (
     'Repository',
+    'Issue'
 )
 
 class Repository(APIOBJECT):
