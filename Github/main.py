@@ -4,15 +4,15 @@ __all__ = (
     'GHClient',
 )
 
-from getpass import getpass
 import aiohttp
 import asyncio
-
-from Github.objects.repo import Issue
+import functools
+from getpass import getpass
 
 from . import http
 from . import exceptions
-from .objects import *
+from .objects import User, PartialUser, Repository, Organization, Issue
+from .cache import UserCache, RepoCache
 
 class GHClient:
     _auth = None
@@ -22,11 +22,17 @@ class GHClient:
         *,
         username: str | None = None,
         token: str | None = None,
+        user_cache_size: int = 30,
+        repo_cache_size: int = 15,
         custom_headers: dict[str, str | int] = {}
     ):
         """The main client, used to start most use-cases."""
         self._headers = custom_headers
+        bound = lambda hi, lo, value: max(min(value, hi), lo)
+        self._user_cache = UserCache(bound(50, 0, user_cache_size))
+        self._repo_cache = RepoCache(bound(50, 0, repo_cache_size))
         if username and token:
+            self.username = username
             self._auth = aiohttp.BasicAuth(username, token)
 
     def __await__(self) -> 'GHClient':
@@ -58,29 +64,51 @@ class GHClient:
         """Main entry point to the wrapper, this creates the ClientSession."""
         if self.has_started:
             raise exceptions.AlreadyStarted
+        if self._auth:
+            try:
+                await self.get_self()
+            except exceptions.InvalidToken as exc:
+                raise exceptions.InvalidToken from exc
         self.session = await http.make_session(headers=self._headers, authorization=self._auth)
         self.has_started = True
         return self
 
-    def _cache(func, cache_type: str):
-        async def wrapper(self: 'GHClient', name: str):
-            if cache_type == 'user':
-                if (user := self._user_cache.get(name)):
-                    return user
-                else:
-                    return await func(self, name)
-            if cache_type == 'repo':
-                if (repo := self._repo_cache.get(name)):
-                    return repo
-                else:
-                    return await func(self, name)
+    def _cache(*args, **kwargs):
+        target_type = kwargs.get('type')
+        def wrapper(func):
+            @functools.wraps(func)
+            async def wrapped(self, *args, **kwargs):
+                if target_type == 'User':
+                    if (obj := self._user_cache.get(kwargs.get('user'))):
+                        return obj
+                    else:
+                        res = await func(self, *args, **kwargs)
+                        self._user_cache[kwargs.get('user')] = res
+                        return res
+                if target_type == 'Repo':
+                    if (obj := self._repo_cache.get(kwargs.get('repo'))):
+                        return obj
+                    else:
+                        res = await func(self, *args, **kwargs)
+                        self._repo_cache[kwargs.get('repo')] = res
+                        return res
+            return wrapped
         return wrapper
 
+    async def get_self(self) -> User:
+        """Returns the authenticated User object."""
+        if self._auth:
+            return await http.get_self(self.session)
+        else:
+            raise exceptions.NoAuthProvided
+
+    @_cache(type='User')
     async def get_user(self, **kwargs) -> User:
         """Fetch a Github user from their username."""
         username = kwargs.get('user')
-        return User(await http.get_user(self.session, username), self.session)
+        return await http.get_user(self.session, username)
 
+    @_cache(type='Repo')
     async def get_repo(self, **kwargs) -> Repository:
         """Fetch a Github repository from it's name."""
         owner = kwargs.get('owner')
