@@ -8,7 +8,6 @@ from types import SimpleNamespace
 import re
 
 from .exceptions import *
-from .exceptions import IssueNotFound
 from .objects import *
 from .urls import *
 
@@ -112,37 +111,40 @@ class Paginator:
         self.bare_link = groups[0][0][:-1]
 
 # user-related functions / utils
-GitHubUserData = dict[str, str | int]
+async def get_self(session: aiohttp.ClientSession) -> User:
+    result = await session.get(SELF_URL)
+    if result.status == 200:
+        return User(await result.json(), session)
+    raise InvalidToken
 
-async def get_user(session: aiohttp.ClientSession, username: str) -> GitHubUserData:
+async def get_user(session: aiohttp.ClientSession, username: str) -> User:
     """Returns a user's public data in JSON format."""
     result = await session.get(USERS_URL.format(username))
     if result.status == 200:
-        return await result.json()
+        return User(await result.json(), session)
     raise UserNotFound
 
 
 # repo-related functions / utils
-
-async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo_name: str):
+async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo_name: str) -> Repository:
     """Returns a Repo object from the given owner and repo name."""
     result = await session.get(REPO_URL.format(owner, repo_name))
     if result.status == 200:
-        return await result.json()
+        return Repository(await result.json(), session)
     raise RepositoryNotFound
 
-async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo_name: str, issue_number: int) -> dict[str, str]:
+async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo_name: str, issue_number: int) -> Issue:
     """Returns a single issue from the given owner and repo name."""
     result = await session.get(REPO_ISSUE_URL.format(owner, repo_name, issue_number))
     if result.status == 200:
-        return await result.json()
+        return Issue(await result.json(), session)
     raise IssueNotFound
 
 # org-related functions / utils
 
-async def get_org(session: aiohttp.ClientSession, org_name: str):
+async def get_org(session: aiohttp.ClientSession, org_name: str) -> Organization:
     """Returns an org's public data in JSON format."""
     result = await session.get(ORG_URL.format(org_name))
     if result.status == 200:
-        return await result.json()
+        return Organization(await result.json(), session)
     raise OrganizationNotFound
