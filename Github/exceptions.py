@@ -10,8 +10,10 @@ __all__ = (
     'OrganizationNotFound',
     'RepositoryNotFound',
     'ObjectNotFound',
+    'IssueNotFound',
     'NoAuthProvided',
     'InvalidAuthCombination',
+    'InvalidToken',
     'AlreadyStarted',
     'NotStarted'
 )
@@ -68,6 +70,11 @@ class NoAuthProvided(APIError):
 class InvalidAuthCombination(APIError):
     def __init__(self):
         msg = 'You must provide both a username and a user token or neither.'
+        super().__init__(msg)
+
+class InvalidToken(APIError):
+    def __init__(self) -> None:
+        msg = "The token you provided was invalid, please check again."
         super().__init__(msg)
 
 class AlreadyStarted(APIError):
