@@ -20,15 +20,14 @@ class GHClient:
     def __init__(
         self,
         *,
-        using_auth: bool = False,
+        username: str | None = None,
+        token: str | None = None,
         custom_headers: dict[str, str | int] = {}
     ):
         """The main client, used to start most use-cases."""
         self._headers = custom_headers
-        if using_auth:
-            username = input('Enter your username: ') #these two lines are blocking, but it's probably not a problem
-            auth_token = getpass('Enter your token: ')
-            self._auth = aiohttp.BasicAuth(username, auth_token)
+        if username and token:
+            self._auth = aiohttp.BasicAuth(username, token)
 
     def __await__(self) -> 'GHClient':
         return self.start().__await__()
