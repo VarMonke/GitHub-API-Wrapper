@@ -113,14 +113,14 @@ class GHClient:
         """Fetch a Github repository from it's name."""
         owner = kwargs.get('owner')
         repo_name = kwargs.get('repo')
-        return Repository(await http.get_repo_from_name(self.session, owner, repo_name), self.session)
+        return await http.get_repo_from_name(self.session, owner, repo_name)
 
     async def get_repo_issue(self, **kwargs) -> Issue:
         """Fetch a Github repository from it's name."""
         owner = kwargs.get('owner')
         repo_name = kwargs.get('repo')
         issue_number = kwargs.get('issue')
-        return Issue(await http.get_repo_issue(self.session, owner, repo_name, issue_number), self.session)
+        return await http.get_repo_issue(self.session, owner, repo_name, issue_number)
 
     async def get_org(self, **kwargs) -> Organization:
         """Fetch a Github organization from it's name"""
