@@ -33,6 +33,7 @@ class GHClient:
         self._repo_cache = RepoCache(bound(50, 0, repo_cache_size))
         if username and token:
             self.username = username
+            self.token = token
             self._auth = aiohttp.BasicAuth(username, token)
 
     def __await__(self) -> 'GHClient':
@@ -65,11 +66,13 @@ class GHClient:
         if self.has_started:
             raise exceptions.AlreadyStarted
         if self._auth:
+            self.session = await http.make_session(headers=self._headers, authorization=self._auth)            
             try:
                 await self.get_self()
             except exceptions.InvalidToken as exc:
                 raise exceptions.InvalidToken from exc
-        self.session = await http.make_session(headers=self._headers, authorization=self._auth)
+        else:
+            self.session = await http.make_session(authorization = self._auth, headers = self._headers)
         self.has_started = True
         return self
 

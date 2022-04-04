@@ -16,6 +16,7 @@ __all__ = (
     'Paginator',
     'get_user',
     'get_repo_from_name',
+    'get_repo_issue',
 )
 
 
