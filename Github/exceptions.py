@@ -88,3 +88,9 @@ class NotStarted(APIError):
     def __init__(self):
         msg = 'You must call `await <Github_instance>.start()` before making this call.'
         super().__init__(msg)
+
+class RepositoryAlreadyExists(APIError):
+    """Raised when a repository already exists."""
+    def __init__(self):
+        msg = 'The repository you are trying to create already exists.'
+        super().__init__(msg)
