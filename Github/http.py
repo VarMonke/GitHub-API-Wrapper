@@ -1,11 +1,11 @@
 #== http.py ==#
 
-
 import aiohttp
 from collections import namedtuple
 from datetime import datetime
 from types import SimpleNamespace
 import re
+import json
 
 from .exceptions import *
 from .objects import *
@@ -140,6 +140,16 @@ async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo_name: 
     if result.status == 200:
         return Issue(await result.json(), session)
     raise IssueNotFound
+
+async def make_repo(session: aiohttp.ClientSession, name: str) -> Repository:
+    """Creates a new repo with the given name."""
+    _data = {"name" : name}
+    try:
+        result = await session.post(MAKE_REPO_URL, data= json.dumps(_data))
+        if result.status == 201:
+            return Repository(await result.json(), session)
+    except Exception:
+        print(Exception)
 
 # org-related functions / utils
 

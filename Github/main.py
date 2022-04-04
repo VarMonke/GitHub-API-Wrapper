@@ -125,6 +125,11 @@ class GHClient:
         issue_number = kwargs.get('issue')
         return await http.get_repo_issue(self.session, owner, repo_name, issue_number)
 
+    async def make_repo(self, **kwargs) -> Repository:
+        """Create a new Github repository."""
+        name = kwargs.get('name')
+        return await http.make_repo(self.session, name)
+
     async def get_org(self, **kwargs) -> Organization:
         """Fetch a Github organization from it's name"""
         org_name = kwargs.get('org')

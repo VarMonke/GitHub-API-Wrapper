@@ -22,6 +22,8 @@ USER_FOLLOWING_URL = USERS_URL + '/following'
 
 
 #== repo urls ==#
+MAKE_REPO_URL = BASE_URL + '/user/repos' #_auth repo create
+
 REPOS_URL = BASE_URL + '/repos/{0}' # repos of a user
 
 REPO_URL = BASE_URL + '/repos/{0}/{1}' # a specific repo
