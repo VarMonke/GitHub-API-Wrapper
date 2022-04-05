@@ -128,23 +128,23 @@ async def get_user(session: aiohttp.ClientSession, username: str) -> User:
 
 
 # repo-related functions / utils
-async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo_name: str) -> Repository:
+async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo: str) -> Repository:
     """Returns a Repo object from the given owner and repo name."""
-    result = await session.get(REPO_URL.format(owner, repo_name))
+    result = await session.get(REPO_URL.format(owner, repo))
     if result.status == 200:
         return Repository(await result.json(), session)
     raise RepositoryNotFound
 
-async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo_name: str, issue_number: int) -> Issue:
+async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo: str, issue: int) -> Issue:
     """Returns a single issue from the given owner and repo name."""
-    result = await session.get(REPO_ISSUE_URL.format(owner, repo_name, issue_number))
+    result = await session.get(REPO_ISSUE_URL.format(owner, repo, issue))
     if result.status == 200:
         return Issue(await result.json(), session)
     raise IssueNotFound
 
-async def make_repo(session: aiohttp.ClientSession, name: str) -> Repository:
+async def create_repo(session: aiohttp.ClientSession, name: str, description: str, private: bool, gitignore_template: str, **kwargs) -> Repository:
     """Creates a new repo with the given name."""
-    _data = {"name" : name}
+    _data = {"name" : name, "description" : description, "private" : private, "gitignore_template" : gitignore_template}
     result = await session.post(MAKE_REPO_URL, data= json.dumps(_data))
     if result.status == 201:
         return Repository(await result.json(), session)
@@ -156,9 +156,9 @@ async def make_repo(session: aiohttp.ClientSession, name: str) -> Repository:
 
 # org-related functions / utils
 
-async def get_org(session: aiohttp.ClientSession, org_name: str) -> Organization:
+async def get_org(session: aiohttp.ClientSession, org: str) -> Organization:
     """Returns an org's public data in JSON format."""
-    result = await session.get(ORG_URL.format(org_name))
+    result = await session.get(ORG_URL.format(org))
     if result.status == 200:
         return Organization(await result.json(), session)
     raise OrganizationNotFound

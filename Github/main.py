@@ -98,6 +98,7 @@ class GHClient:
             return wrapped
         return wrapper
 
+    @_cache(type='User')
     async def get_self(self) -> User:
         """Returns the authenticated User object."""
         if self._auth:
@@ -106,33 +107,25 @@ class GHClient:
             raise exceptions.NoAuthProvided
 
     @_cache(type='User')
-    async def get_user(self, **kwargs) -> User:
+    async def get_user(self, username) -> User:
         """Fetch a Github user from their username."""
-        username = kwargs.get('user')
         return await http.get_user(self.session, username)
 
     @_cache(type='Repo')
-    async def get_repo(self, **kwargs) -> Repository:
+    async def get_repo(self, owner: str, repo: str) -> Repository:
         """Fetch a Github repository from it's name."""
-        owner = kwargs.get('owner')
-        repo_name = kwargs.get('repo')
-        return await http.get_repo_from_name(self.session, owner, repo_name)
+        return await http.get_repo_from_name(self.session, owner, repo)
 
-    async def get_repo_issue(self, **kwargs) -> Issue:
+    async def get_issue(self, owner: str, repo: str, issue: int) -> Issue:
         """Fetch a Github repository from it's name."""
-        owner = kwargs.get('owner')
-        repo_name = kwargs.get('repo')
-        issue_number = kwargs.get('issue')
-        return await http.get_repo_issue(self.session, owner, repo_name, issue_number)
+        return await http.get_repo_issue(self.session, owner, repo, issue)
 
-    async def make_repo(self, **kwargs) -> Repository:
+    async def create_repo(self, name: str, description: str, private: bool, gitignore_template: str) -> Repository:
         """Create a new Github repository."""
-        name = kwargs.get('name')
-        return await http.make_repo(self.session, name)
+        return await http.make_repo(self.session, name, description, private, gitignore_template)
 
-    async def get_org(self, **kwargs) -> Organization:
+    async def get_org(self, org) -> Organization:
         """Fetch a Github organization from it's name"""
-        org_name = kwargs.get('org')
-        return await http.get_org(self.session, org_name)
+        return await http.get_org(self.session, org)
 
 
