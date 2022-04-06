@@ -13,11 +13,8 @@ from .objects import *
 from .urls import *
 
 __all__ = (
-    'make_session',
     'Paginator',
-    'get_user',
-    'get_repo_from_name',
-    'get_repo_issue',
+    'http',
 )
 
 
@@ -112,53 +109,92 @@ class Paginator:
             raise WillExceedRatelimit(response, self.max_page)
         self.bare_link = groups[0][0][:-1]
 
-# user-related functions / utils
-async def get_self(session: aiohttp.ClientSession) -> User:
-    result = await session.get(SELF_URL)
-    if result.status == 200:
-        return User(await result.json(), session)
-    raise InvalidToken
+GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = dict[str, str | int]
 
-async def get_user(session: aiohttp.ClientSession, username: str) -> User:
-    """Returns a user's public data in JSON format."""
-    result = await session.get(USERS_URL.format(username))
-    if result.status == 200:
-        return User(await result.json(), session)
-    raise UserNotFound
+class http:
+    def __init__(self, headers: dict[str, str | int], auth: aiohttp.BasicAuth | None):
+        if not headers.get('User-Agent'):
+            headers['User-Agent'] = 'Github-API-Wrapper'
+        self._rates = Rates('', '', '', '', '')
+        self.headers = headers
+        self.auth = auth
 
+    def __await__(self):
+        return self.start().__await__()
 
-# repo-related functions / utils
-async def get_repo_from_name(session: aiohttp.ClientSession, owner: str, repo: str) -> Repository:
-    """Returns a Repo object from the given owner and repo name."""
-    result = await session.get(REPO_URL.format(owner, repo))
-    if result.status == 200:
-        return Repository(await result.json(), session)
-    raise RepositoryNotFound
+    async def start(self):
+        self.session = aiohttp.ClientSession(
+            headers=self.headers,
+            auth=self.auth,
+            trace_configs=[trace_config],
+        )
+        return self
 
-async def get_repo_issue(session: aiohttp.ClientSession, owner: str, repo: str, issue: int) -> Issue:
-    """Returns a single issue from the given owner and repo name."""
-    result = await session.get(REPO_ISSUE_URL.format(owner, repo, issue))
-    if result.status == 200:
-        return Issue(await result.json(), session)
-    raise IssueNotFound
+    def update_headers(self, *, flush: bool = False, new_headers: dict[str, str | int]):
+        if flush:
+            from multidict import CIMultiDict
+            self.session.headers = CIMultiDict(**new_headers)
+        else:
+            self.session.headers = {**self.session.headers, **new_headers}
 
-async def create_repo(session: aiohttp.ClientSession, name: str, description: str, private: bool, gitignore_template: str, **kwargs) -> Repository:
-    """Creates a new repo with the given name."""
-    _data = {"name" : name, "description" : description, "private" : private, "gitignore_template" : gitignore_template}
-    result = await session.post(MAKE_REPO_URL, data= json.dumps(_data))
-    if result.status == 201:
-        return Repository(await result.json(), session)
-    if result.status == 401:
-        raise NoAuthProvided
-    raise RepositoryAlreadyExists
+    async def update_auth(self, *, username: str, token: str):
+        auth = aiohttp.BasicAuth(username, token)
+        headers = self.session.headers
+        config = self.session.trace_configs
+        await self.session.close()
+        self.session = aiohttp.ClientSession(
+            headers=headers,
+            auth=auth,
+            trace_configs=config
+        )
 
+    async def get_self(self) -> GithubUserData:
+        """Returns the authenticated User's data"""
+        result = await self.session.get(SELF_URL)
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise InvalidToken
 
+    async def get_user(self, username: str) -> GithubUserData:
+        """Returns a user's public data in JSON format."""
+        result = await self.session.get(USERS_URL.format(username))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise UserNotFound
 
-# org-related functions / utils
+    async def get_repo(self, owner: str, repo_name: str) -> GithubRepoData:
+        """Returns a Repo's raw JSON from the given owner and repo name."""
+        result = await self.session.get(REPO_URL.format(owner, repo_name))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise RepositoryNotFound
+    
+    async def get_repo_issue(self, owner: str, repo_name: str, issue_number: int) -> GithubIssueData:
+        """Returns a single issue's JSON from the given owner and repo name."""
+        result = await self.session.get(REPO_ISSUE_URL.format(owner, repo_name, issue_number))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise IssueNotFound
 
-async def get_org(session: aiohttp.ClientSession, org: str) -> Organization:
-    """Returns an org's public data in JSON format."""
-    result = await session.get(ORG_URL.format(org))
-    if result.status == 200:
-        return Organization(await result.json(), session)
-    raise OrganizationNotFound
+    async def create_repo(self, **kwargs: dict[str, str | bool]) -> GithubRepoData:
+        """Creates a repo for you with given data"""
+        data = {
+            'name': kwargs.get('name'),
+            'description': kwargs.get('description'),
+            'private': kwargs.get('private', True),
+            'gitignore_template': kwargs.get('gitignore'),
+            'license': kwargs.get('license'),
+        }
+        result = await self.session.post(CREATE_REPO_URL, data=json.dumps(data))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        if result.status == 401:
+            raise NoAuthProvided
+        raise RepositoryAlreadyExists
+
+    async def get_org(self, org_name: str) -> GithubOrgData:
+        """Returns an org's public data in JSON format."""
+        result = await self.session.get(ORG_URL.format(org_name))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise OrganizationNotFound

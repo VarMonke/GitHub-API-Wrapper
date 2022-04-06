@@ -9,7 +9,7 @@ import asyncio
 import functools
 from getpass import getpass
 
-from . import http
+from .http import http
 from . import exceptions
 from .objects import User, PartialUser, Repository, Organization, Issue
 from .cache import UserCache, RepoCache
@@ -17,6 +17,7 @@ from .cache import UserCache, RepoCache
 class GHClient:
     _auth = None
     has_started = False
+    http: http
     def __init__(
         self,
         *,
@@ -43,36 +44,34 @@ class GHClient:
         return f'<Github Client; has_auth={bool(self._auth)}>'
 
     def __del__(self):
-        asyncio.create_task(self.session.close())
+        asyncio.create_task(self.http.session.close())
 
     def check_limits(self, as_dict: bool = False) -> dict[str, str | int] | list[str]:
         if not self.has_started:
             raise exceptions.NotStarted
         if not as_dict:
             output = []
-            for key, value in self.session._rates._asdict().items():
+            for key, value in self.http.session._rates._asdict().items():
                 output.append(f'{key} : {value}')
             return output
-        return self.session._rates._asdict()
+        return self.http.session._rates._asdict()
 
-    def update_auth(self) -> None:
+    async def update_auth(self, username: str, token: str) -> None:
         """Allows you to input auth information after instantiating the client."""
-        username = input('Enter your username: ')
-        token = getpass('Enter your token: ')
-        self._auth = aiohttp.BasicAuth(username, token)
+        await self.http.update_auth(username, token)
 
     async def start(self) -> 'GHClient':
         """Main entry point to the wrapper, this creates the ClientSession."""
         if self.has_started:
             raise exceptions.AlreadyStarted
         if self._auth:
-            self.session = await http.make_session(headers=self._headers, authorization=self._auth)            
+            self.http = await http(auth=self._auth, headers=self._headers)
             try:
-                await self.get_self()
+                await self.http.get_self()
             except exceptions.InvalidToken as exc:
                 raise exceptions.InvalidToken from exc
         else:
-            self.session = await http.make_session(authorization = self._auth, headers = self._headers)
+            self.http = await http(auth=None, headers=self._headers)
         self.has_started = True
         return self
 
@@ -102,30 +101,30 @@ class GHClient:
     async def get_self(self) -> User:
         """Returns the authenticated User object."""
         if self._auth:
-            return await http.get_self(self.session)
+            return User(await self.http.get_self(), self.http.session)
         else:
             raise exceptions.NoAuthProvided
 
     @_cache(type='User')
-    async def get_user(self, username) -> User:
+    async def get_user(self, username: str) -> User:
         """Fetch a Github user from their username."""
-        return await http.get_user(self.session, username)
+        return User(await self.http.get_user(username), self.http.session)
 
     @_cache(type='Repo')
     async def get_repo(self, owner: str, repo: str) -> Repository:
         """Fetch a Github repository from it's name."""
-        return await http.get_repo_from_name(self.session, owner, repo)
+        return Repository(await self.http.get_repo(owner, repo), self.http.session)
 
     async def get_issue(self, owner: str, repo: str, issue: int) -> Issue:
         """Fetch a Github repository from it's name."""
-        return await http.get_repo_issue(self.session, owner, repo, issue)
+        return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http.session)
 
     async def create_repo(self, name: str, description: str, private: bool, gitignore_template: str) -> Repository:
         """Create a new Github repository."""
-        return await http.make_repo(self.session, name, description, private, gitignore_template)
+        return Repository(await self.http.make_repo(name, description, private, gitignore_template), self.http.session)
 
-    async def get_org(self, org) -> Organization:
+    async def get_org(self, org: str) -> Organization:
         """Fetch a Github organization from it's name"""
-        return await http.get_org(self.session, org)
+        return Organization(await http.get_org(org), self.http.session)
 
 
