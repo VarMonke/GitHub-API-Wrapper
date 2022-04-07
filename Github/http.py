@@ -1,15 +1,17 @@
 #== http.py ==#
 
-import aiohttp
+
+import json
+import re
 from collections import namedtuple
 from datetime import datetime
 from types import SimpleNamespace
-import re
-import json
+
+import aiohttp
 
 from .exceptions import *
-from .exceptions import RepositoryAlreadyExists, GistNotFound
-from .objects import *
+from .exceptions import GistNotFound, RepositoryAlreadyExists
+from .objects import APIObject, User
 from .urls import *
 
 __all__ = (
@@ -71,7 +73,7 @@ class Paginator:
         self.session = session
         self.response = response
         self.should_paginate = bool(self.response.headers.get('Link', False))
-        types: dict[str, APIOBJECT] = {
+        types: dict[str, APIObject] = {
             'user': User,
         }
         self.target_type = types[target_type]
@@ -85,11 +87,11 @@ class Paginator:
         """Fetches a specific page and returns the JSON."""
         return await (await self.session.get(link)).json()
 
-    async def early_return(self) -> list[APIOBJECT]:
+    async def early_return(self) -> list[APIObject]:
         # I don't rightly remember what this does differently, may have a good ol redesign later
         return [self.target_type(data, self.session) for data in await self.response.json()]
 
-    async def exhaust(self) -> list[APIOBJECT]:
+    async def exhaust(self) -> list[APIObject]:
         """Iterates through all of the pages for the relevant object and creates them."""
         if self.should_paginate:
             return await self.early_return()
@@ -161,6 +163,27 @@ class http:
         if 200 <= result.status <= 299:
             return await result.json()
         raise UserNotFound
+
+    async def get_user_repos(self, _user: User) -> list[GithubRepoData]:
+        result = await self.session.get(USER_REPOS_URL.format(_user.login))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        else:
+            print('This shouldn\'t be reachable')
+
+    async def get_user_gists(self, _user: User) -> list[GithubGistData]:
+        result = await self.session.get(USER_GISTS_URL.format(_user.login))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        else:
+            print('This shouldn\'t be reachable')
+
+    async def get_user_orgs(self, _user: User) -> list[GithubOrgData]:
+        result = await self.session.get(USER_ORGS_URL.format(_user.login))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        else:
+            print('This shouldn\'t be reachable')
 
     async def get_repo(self, owner: str, repo_name: str) -> GithubRepoData:
         """Returns a Repo's raw JSON from the given owner and repo name."""

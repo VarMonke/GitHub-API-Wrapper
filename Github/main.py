@@ -1,18 +1,20 @@
 #== main.py ==#
+from __future__ import annotations
 
 __all__ = (
     'GHClient',
 )
 
-import aiohttp
 import asyncio
 import functools
-from getpass import getpass
 
-from .http import http
+import aiohttp
+
 from . import exceptions
-from .objects import User, PartialUser, Repository, Organization, Issue, Gist
-from .cache import UserCache, RepoCache
+from .cache import RepoCache, UserCache
+from .http import http
+from .objects import Gist, Issue, Organization, Repository, User
+
 
 class GHClient:
     _auth = None

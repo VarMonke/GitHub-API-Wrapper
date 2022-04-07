@@ -1,5 +1,7 @@
 #== cache.py ==#
 
+from __future__ import annotations
+
 __all__ = (
     'UserCache',
     'RepoCache',
@@ -7,7 +9,8 @@ __all__ = (
 )
 
 from collections import deque
-from .objects import APIOBJECT, User, Repository, Organization
+
+from .objects import APIObject, User, Repository, Organization
 
 
 class _BaseCache(dict):
@@ -19,12 +22,12 @@ class _BaseCache(dict):
         self._lru_keys = deque(maxlen=self._max_size)
         super().__init__(args)
     
-    def __getitem__(self, __k: str) -> APIOBJECT:
+    def __getitem__(self, __k: str) -> APIObject:
         target = self._lru_keys.pop(self._lru_keys.index(__k))
         self._lru_keys.appendleft(target)
         return super().__getitem__(__k)
 
-    def __setitem__(self, __k: str, __v: APIOBJECT) -> None:
+    def __setitem__(self, __k: str, __v: APIObject) -> None:
         if len(self) == self._max_size:
             to_pop = self._lru_keys.pop(-1)
             del self[to_pop]
@@ -37,12 +40,12 @@ class _BaseCache(dict):
 
 class UserCache(_BaseCache):
     """This adjusts the typehints to reflect User objects"""
-    def __getitem__(self, __k: str) -> User:
+    def __getitem__(self, __k: str) -> 'User':
         target = self._lru_keys.pop(self._lru_keys.index(__k))
         self._lru_keys.appendleft(target)
         return super().__getitem__(__k)
 
-    def __setitem__(self, __k: str, __v: User) -> None:
+    def __setitem__(self, __k: str, __v: 'User') -> None:
         if len(self) == self._max_size:
             to_pop = self._lru_keys.pop(-1)
             del self[to_pop]
@@ -55,12 +58,12 @@ class UserCache(_BaseCache):
 
 class RepoCache(_BaseCache):
     """This adjusts the typehints to reflect Repo objects"""
-    def __getitem__(self, __k: str) -> Repository:
+    def __getitem__(self, __k: str) -> 'Repository':
         target = self._lru_keys.pop(self._lru_keys.index(__k))
         self._lru_keys.appendleft(target)
         return super().__getitem__(__k)
 
-    def __setitem__(self, __k: str, __v: Repository) -> None:
+    def __setitem__(self, __k: str, __v: 'Repository') -> None:
         if len(self) == self._max_size:
             to_pop = self._lru_keys.pop(-1)
             del self[to_pop]
@@ -72,12 +75,12 @@ class RepoCache(_BaseCache):
             self[key] = value
 
 class OrgCache(_BaseCache):
-    def __getitem__(self, __k: str) -> Organization:
+    def __getitem__(self, __k: str) -> 'Organization':
         target = self._lru_keys.pop(self._lru_keys.index(__k))
         self._lru_keys.appendleft(target)
         return super().__getitem__(__k)
 
-    def __setitem__(self, __k: str, __v: Organization) -> None:
+    def __setitem__(self, __k: str, __v: 'Organization') -> None:
         if len(self) == self._max_size:
             to_pop = self._lru_keys.pop(-1)
             del self[to_pop]
