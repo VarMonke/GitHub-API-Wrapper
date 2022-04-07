@@ -41,7 +41,7 @@ class Organization(APIOBJECT):
                 continue
 
     def __repr__(self):
-        return f'<Organization; login: {self.login}, id: {self.id}, html_url: {self.html_url}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+        return f'<Organization; login: {self.login!r}, id: {self.id}, html_url: {self.html_url}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
 
     @classmethod
     async def from_name(cls, session: aiohttp.ClientSession, org: str) -> 'Organization':

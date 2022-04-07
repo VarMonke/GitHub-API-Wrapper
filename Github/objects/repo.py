@@ -61,7 +61,7 @@ class Repository(APIOBJECT):
                 continue
 
     def __repr__(self) -> str:
-        return f'<Repository; id: {self.id}, name: {self.name}, owner: {self.owner}, updated_at: {self.updated_at}, default_branch: {self.default_branch}, license: {self.license}>'
+        return f'<Repository; id: {self.id}, name: {self.name!r}, owner: {self.owner}, updated_at: {self.updated_at}, default_branch: {self.default_branch!r}, license: {self.license!r}>'
 
     @classmethod
     async def from_name(cls, session: aiohttp.ClientSession,owner: str, repo_name: str) -> 'Repository':
@@ -82,8 +82,9 @@ class Issue(APIOBJECT):
     )
 
     def __init__(self, response: dict, session: aiohttp.ClientSession) -> None:
+        super().__init__(response, session)
         tmp = self.__slots__ + APIOBJECT.__slots__
-        keys = {key: value for key,value in response.items() if key in tmp}
+        keys = {key: value for key,value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if key == 'user':
                 setattr(self, key, PartialUser(value, session))
