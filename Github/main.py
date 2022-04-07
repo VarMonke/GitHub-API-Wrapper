@@ -106,16 +106,16 @@ class GHClient:
             raise exceptions.NoAuthProvided
 
     @_cache(type='User')
-    async def get_user(self, username: str) -> User:
+    async def get_user(self, *, user: str) -> User:
         """Fetch a Github user from their username."""
-        return User(await self.http.get_user(username), self.http.session)
+        return User(await self.http.get_user(user), self.http.session)
 
     @_cache(type='Repo')
-    async def get_repo(self, owner: str, repo: str) -> Repository:
+    async def get_repo(self, *, owner: str, repo: str) -> Repository:
         """Fetch a Github repository from it's name."""
         return Repository(await self.http.get_repo(owner, repo), self.http.session)
 
-    async def get_issue(self, owner: str, repo: str, issue: int) -> Issue:
+    async def get_issue(self, *, owner: str, repo: str, issue: int) -> Issue:
         """Fetch a Github repository from it's name."""
         return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http.session)
 
