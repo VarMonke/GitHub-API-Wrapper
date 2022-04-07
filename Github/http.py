@@ -8,7 +8,7 @@ import re
 import json
 
 from .exceptions import *
-from .exceptions import RepositoryAlreadyExists
+from .exceptions import RepositoryAlreadyExists, GistNotFound
 from .objects import *
 from .urls import *
 
@@ -109,7 +109,7 @@ class Paginator:
             raise WillExceedRatelimit(response, self.max_page)
         self.bare_link = groups[0][0][:-1]
 
-GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = dict[str, str | int]
+GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = GithubGistData = dict[str, str | int]
 
 class http:
     def __init__(self, headers: dict[str, str | int], auth: aiohttp.BasicAuth | None):
@@ -176,6 +176,20 @@ class http:
             return await result.json()
         raise IssueNotFound
 
+    async def get_org(self, org_name: str) -> GithubOrgData:
+        """Returns an org's public data in JSON format."""
+        result = await self.session.get(ORG_URL.format(org_name))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise OrganizationNotFound
+
+    async def get_gist(self, gist_id: int) -> GithubGistData:
+        """Returns a gist's raw JSON from the given gist id."""
+        result = await self.session.get(GIST_URL.format(gist_id))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        raise GistNotFound
+
     async def create_repo(self, **kwargs: dict[str, str | bool]) -> GithubRepoData:
         """Creates a repo for you with given data"""
         data = {
@@ -191,10 +205,3 @@ class http:
         if result.status == 401:
             raise NoAuthProvided
         raise RepositoryAlreadyExists
-
-    async def get_org(self, org_name: str) -> GithubOrgData:
-        """Returns an org's public data in JSON format."""
-        result = await self.session.get(ORG_URL.format(org_name))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise OrganizationNotFound

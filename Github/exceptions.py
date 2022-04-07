@@ -86,11 +86,17 @@ class AlreadyStarted(APIError):
 class NotStarted(APIError):
     """Raised when a call is made before start is called."""
     def __init__(self):
-        msg = 'You must call `await <Github_instance>.start()` before making this call.'
+        msg = 'You must call `await <Github.GHClient_instance>.start()` before making this call.'
         super().__init__(msg)
 
 class RepositoryAlreadyExists(APIError):
     """Raised when a repository already exists."""
     def __init__(self):
         msg = 'The repository you are trying to create already exists.'
+        super().__init__(msg)
+
+class GistNotFound(APIError):
+    """Raised when a gist is not found."""
+    def __init__(self):
+        msg = 'The gist you are trying to access does not exist.'
         super().__init__(msg)

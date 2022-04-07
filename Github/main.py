@@ -11,7 +11,7 @@ from getpass import getpass
 
 from .http import http
 from . import exceptions
-from .objects import User, PartialUser, Repository, Organization, Issue
+from .objects import User, PartialUser, Repository, Organization, Issue, Gist
 from .cache import UserCache, RepoCache
 
 class GHClient:
@@ -121,10 +121,14 @@ class GHClient:
 
     async def create_repo(self, name: str, description: str, private: bool, gitignore_template: str) -> Repository:
         """Create a new Github repository."""
-        return Repository(await self.http.make_repo(name, description, private, gitignore_template), self.http.session)
+        return Repository(await self.http.create_repo(name, description, private, gitignore_template), self.http.session)
 
     async def get_org(self, org: str) -> Organization:
         """Fetch a Github organization from it's name"""
-        return Organization(await http.get_org(org), self.http.session)
+        return Organization(await self.http.get_org(org), self.http.session)
+
+    async def get_gist(self, gist: int) -> Gist:
+        """Fetch a Github gist from it's id"""
+        return Gist(await self.http.get_gist(gist), self.http.session)
 
 

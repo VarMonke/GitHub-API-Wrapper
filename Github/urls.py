@@ -30,6 +30,8 @@ REPO_URL = BASE_URL + '/repos/{0}/{1}' # a specific repo
 
 REPO_ISSUE_URL = REPO_URL + '/issues/{2}' # a specific issue
 
+#== gist urls ==#
+GIST_URL = BASE_URL + '/gists/{0}' # specific gist
 
 #== org urls ==#
 ORG_URL = BASE_URL + '/orgs/{0}'
