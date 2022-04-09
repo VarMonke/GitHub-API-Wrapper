@@ -32,6 +32,7 @@ REPO_ISSUE_URL = REPO_URL + '/issues/{2}' # a specific issue
 
 #== gist urls ==#
 GIST_URL = BASE_URL + '/gists/{0}' # specific gist
+CREATE_GIST_URL = BASE_URL + '/gists' # create a gist
 
 #== org urls ==#
 ORG_URL = BASE_URL + '/orgs/{0}'

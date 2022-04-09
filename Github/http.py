@@ -11,7 +11,7 @@ import aiohttp
 
 from .exceptions import *
 from .exceptions import GistNotFound, RepositoryAlreadyExists
-from .objects import APIObject, User
+from .objects import APIObject, User, Gist, Repository, Organization
 from .urls import *
 
 __all__ = (
@@ -75,6 +75,7 @@ class Paginator:
         self.should_paginate = bool(self.response.headers.get('Link', False))
         types: dict[str, APIObject] = {
             'user': User,
+            'gist' : Gist,
         }
         self.target_type = types[target_type]
         self.pages = {}
