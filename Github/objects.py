@@ -29,7 +29,7 @@ class APIObject:
         '_http'
     )
 
-    def __init__(self, response: dict[str, str | int | dict[str, str | int]], _http: 'http') -> None:
+    def __init__(self, response: dict[str, str | int | dict[str, str | int]], _http) -> None:
         self._http = _http
         self._response = response
 
@@ -44,7 +44,7 @@ class _BaseUser(APIObject):
         'login',
         'id',
         )
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         self._http = _http
         self.login = response.get('login')
@@ -78,7 +78,7 @@ class User(_BaseUser):
         'following',
         'created_at',
         )
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + _BaseUser.__slots__
         keys = {key: value for key,value in self._response.items() if key in tmp}
@@ -101,7 +101,7 @@ class PartialUser(_BaseUser):
         'avatar_url',
         ) + _BaseUser.__slots__
 
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         self.site_admin = response.get('site_admin')
         self.html_url = response.get('html_url')
@@ -138,7 +138,7 @@ class Repository(APIObject):
         'forks',
         'license',
         )
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key,value in self._response.items() if key in tmp}
@@ -182,7 +182,7 @@ class Issue(APIObject):
         'closed_by',
     )
 
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key,value in self._response.items() if key in tmp}
@@ -222,7 +222,7 @@ class Gist(APIObject):
         'comments',
         'truncated',
         )
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key,value in self._response.items() if key in tmp}
@@ -256,7 +256,7 @@ class Organization(APIObject):
     'avatar_url',
     )
 
-    def __init__(self, response: dict, _http: 'http') -> None:
+    def __init__(self, response: dict, _http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key,value in self._response.items() if key in tmp}
