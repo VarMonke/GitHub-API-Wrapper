@@ -1,6 +1,11 @@
 #== objects.py ==#
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .http import http
+
 from datetime import datetime
 
 __all__ = (
@@ -29,7 +34,7 @@ class APIObject:
         '_http'
     )
 
-    def __init__(self, response: dict[str, str | int | dict[str, str | int]], _http) -> None:
+    def __init__(self, response: dict[str, str | int | dict[str, str | int]], _http: http) -> None:
         self._http = _http
         self._response = response
 
