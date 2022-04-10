@@ -1,11 +1,17 @@
 #== http.py ==#
 
+from __future__ import annotations
 
+import io
 import json
 import re
 from collections import namedtuple
 from datetime import datetime
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .main import File
 
 import aiohttp
 
@@ -212,6 +218,29 @@ class http:
         if 200 <= result.status <= 299:
             return await result.json()
         raise GistNotFound
+
+    async def create_gist(
+        self,
+        *,
+        files: list['File'] = [],
+        description: str = 'Default description',
+        public: bool = False
+    ) -> GithubGistData:
+        data = {}
+        data['description'] = description
+        data['public'] = public
+        data['files'] = {}
+        for file in files:
+            data['files'][file.filename] = {
+                'content': file.read()
+            }
+        data = json.dumps(data)
+        _headers = self.session.headers
+        result = self.session.post(CREATE_GIST_URL, data=data, headers=_headers|{'Accept': 'application/vnd.github.v3+json'})
+        if 201 == result.status:
+            return await result.json()
+        raise InvalidToken
+
 
     async def create_repo(self, **kwargs: dict[str, str | bool]) -> GithubRepoData:
         """Creates a repo for you with given data"""

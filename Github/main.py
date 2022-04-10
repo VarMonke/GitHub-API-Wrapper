@@ -7,6 +7,7 @@ __all__ = (
 
 import asyncio
 import functools
+import io
 
 import aiohttp
 
@@ -14,6 +15,20 @@ from . import exceptions
 from .cache import RepoCache, UserCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User
+
+
+class File:
+    def __init__(self, fp: str | io.StringIO, filename: str = 'DefaultFilename.txt'):
+        self.fp = fp
+        self.filename = filename
+
+    def read(self) -> str:
+        if isinstance(self.fp, str):
+            with open(self.fp) as fp:
+                data = fp.read()
+            return data
+        else:
+            return self.fp.read()
 
 
 class GHClient:
@@ -122,15 +137,20 @@ class GHClient:
         return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http.session)
 
     async def create_repo(self, name: str, description: str, private: bool, gitignore_template: str) -> Repository:
-        """Create a new Github repository."""
+        """Create a new Github repository, requires authorisation."""
         return Repository(await self.http.create_repo(name, description, private, gitignore_template), self.http.session)
 
+    async def get_gist(self, gist: int) -> Gist:
+        """Fetch a Github gist from it's id."""
+        return Gist(await self.http.get_gist(gist), self.http.session)
+
+    async def create_gist(self, *,  files: list[File], description: str, public: bool) -> Gist:
+        """Creates a Gist with the given files, requires authorisation."""
+        return Gist(await self.http.create_gist(files=files, description=description, public=public), self.http.session)
+
     async def get_org(self, org: str) -> Organization:
-        """Fetch a Github organization from it's name"""
+        """Fetch a Github organization from it's name."""
         return Organization(await self.http.get_org(org), self.http.session)
 
-    async def get_gist(self, gist: int) -> Gist:
-        """Fetch a Github gist from it's id"""
-        return Gist(await self.http.get_gist(gist), self.http.session)
 
 
