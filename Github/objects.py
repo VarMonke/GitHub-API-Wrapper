@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from .http import http
 
 from datetime import datetime
+import io
 
 __all__ = (
     'APIObject',
@@ -16,6 +17,7 @@ __all__ = (
     'User',
     'Repository',
     'Issue',
+    'File',
     'Gist',
     'Organization',
 )
@@ -213,6 +215,19 @@ class Issue(APIObject):
 
 
 #=== Gist stuff ===#
+
+class File:
+    def __init__(self, fp: str | io.StringIO, filename: str = 'DefaultFilename.txt'):
+        self.fp = fp
+        self.filename = filename
+
+    def read(self) -> str:
+        if isinstance(self.fp, str):
+            with open(self.fp) as fp:
+                data = fp.read()
+            return data
+        else:
+            return self.fp.read()
 
 class Gist(APIObject):
     __slots__ = (
