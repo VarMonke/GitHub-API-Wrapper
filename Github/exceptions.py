@@ -100,3 +100,9 @@ class GistNotFound(APIError):
     def __init__(self):
         msg = 'The gist you are trying to access does not exist.'
         super().__init__(msg)
+
+class MissingPermissions(NoAuthProvided): #Why did I subclass NoAuthProvided?
+    """Raised when a user does not have permissions to perform an action."""
+    def __init__(self):
+        msg = 'You do not have permission to perform this action.'
+        super().__init__(msg)

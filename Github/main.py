@@ -114,7 +114,7 @@ class GHClient:
             return wrapped
         return wrapper
 
-    @_cache(type='User')
+    #@_cache(type='User')
     async def get_self(self) -> User:
         """Returns the authenticated User object."""
         if self._auth:
@@ -136,9 +136,12 @@ class GHClient:
         """Fetch a Github repository from it's name."""
         return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http.session)
 
-    async def create_repo(self, name: str, description: str, private: bool, gitignore_template: str) -> Repository:
-        """Create a new Github repository, requires authorisation."""
-        return Repository(await self.http.create_repo(name, description, private, gitignore_template), self.http.session)
+    async def create_repo(self, name: str, description: str = 'Repository created using Github-Api-Wrapper.', public: bool = False,gitignore: str = None, license: str = None) -> Repository:
+        return Repository(await self.http.create_repo(name,description,public,gitignore,license), self.http.session)
+
+    async def delete_repo(self, owner: str , repo: str) -> None:
+        """Delete a Github repository, requires authorisation."""
+        await self.http.delete_repo(owner, repo)
 
     async def get_gist(self, gist: int) -> Gist:
         """Fetch a Github gist from it's id."""
@@ -147,6 +150,10 @@ class GHClient:
     async def create_gist(self, *,  files: list[File], description: str, public: bool) -> Gist:
         """Creates a Gist with the given files, requires authorisation."""
         return Gist(await self.http.create_gist(files=files, description=description, public=public), self.http.session)
+
+    async def delete_gist(self, gist: int) -> None:
+        """Delete a Github gist, requires authorisation."""
+        await self.http.delete_gist(gist)
 
     async def get_org(self, org: str) -> Organization:
         """Fetch a Github organization from it's name."""

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 import aiohttp
 
 from .exceptions import *
-from .exceptions import GistNotFound, RepositoryAlreadyExists
+from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
 from .objects import APIObject, User, Gist, Repository, Organization
 from .urls import *
 
@@ -82,6 +82,7 @@ class Paginator:
         types: dict[str, APIObject] = {
             'user': User,
             'gist' : Gist,
+            'repo' : Repository
         }
         self.target_type = types[target_type]
         self.pages = {}
@@ -206,6 +207,24 @@ class http:
             return await result.json()
         raise IssueNotFound
 
+    async def delete_repo(self, owner: str,repo_name: str) -> None:
+        """Deletes a Repo from the given owner and repo name."""
+        result = await self.session.delete(REPO_URL.format(owner, repo_name))
+        if 204 <= result.status <= 299:
+            return 'Successfully deleted repository.'
+        if result.status == 403:
+            raise MissingPermissions
+        raise RepositoryNotFound
+
+    async def delete_gist(self, gist_id: int) -> None:
+        """Deletes a Gist from the given gist id."""
+        result = await self.session.delete(GIST_URL.format(gist_id))
+        if result.status == 204:
+            return 'Successfully deleted gist.'
+        if result.status == 403:
+            raise MissingPermissions
+        raise GistNotFound
+
     async def get_org(self, org_name: str) -> GithubOrgData:
         """Returns an org's public data in JSON format."""
         result = await self.session.get(ORG_URL.format(org_name))
@@ -243,14 +262,14 @@ class http:
         raise InvalidToken
 
 
-    async def create_repo(self, **kwargs: dict[str, str | bool]) -> GithubRepoData:
+    async def create_repo(self, name: str, description: str, public: bool, gitignore: str, license: str) -> GithubRepoData:
         """Creates a repo for you with given data"""
         data = {
-            'name': kwargs.get('name'),
-            'description': kwargs.get('description'),
-            'private': kwargs.get('private', True),
-            'gitignore_template': kwargs.get('gitignore'),
-            'license': kwargs.get('license'),
+            'name': name,
+            'description': description,
+            'public': public,
+            'gitignore_template': gitignore,
+            'license': license,
         }
         result = await self.session.post(CREATE_REPO_URL, data=json.dumps(data))
         if 200 <= result.status <= 299:
@@ -258,3 +277,4 @@ class http:
         if result.status == 401:
             raise NoAuthProvided
         raise RepositoryAlreadyExists
+
