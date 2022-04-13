@@ -7,28 +7,13 @@ __all__ = (
 
 import asyncio
 import functools
-import io
 
 import aiohttp
 
 from . import exceptions
 from .cache import RepoCache, UserCache
 from .http import http
-from .objects import Gist, Issue, Organization, Repository, User
-
-
-class File:
-    def __init__(self, fp: str | io.StringIO, filename: str = 'DefaultFilename.txt'):
-        self.fp = fp
-        self.filename = filename
-
-    def read(self) -> str:
-        if isinstance(self.fp, str):
-            with open(self.fp) as fp:
-                data = fp.read()
-            return data
-        else:
-            return self.fp.read()
+from .objects import Gist, Issue, Organization, Repository, User, File
 
 
 class GHClient:
