@@ -133,15 +133,16 @@ class GHClient:
         return Repository(await self.http.get_repo(owner, repo), self.http.session)
 
     async def get_issue(self, *, owner: str, repo: str, issue: int) -> Issue:
-        """Fetch a Github repository from it's name."""
+        """Fetch a Github Issue from it's name."""
         return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http.session)
 
     async def create_repo(self, name: str, description: str = 'Repository created using Github-Api-Wrapper.', public: bool = False,gitignore: str = None, license: str = None) -> Repository:
         return Repository(await self.http.create_repo(name,description,public,gitignore,license), self.http.session)
 
-    async def delete_repo(self, owner: str , repo: str) -> None:
+    async def delete_repo(self, owner: str = None, repo: str= None) -> None:
         """Delete a Github repository, requires authorisation."""
-        await self.http.delete_repo(owner, repo)
+        owner = owner or self.username
+        return await self.http.delete_repo(owner, repo)
 
     async def get_gist(self, gist: int) -> Gist:
         """Fetch a Github gist from it's id."""
@@ -153,7 +154,7 @@ class GHClient:
 
     async def delete_gist(self, gist: int) -> None:
         """Delete a Github gist, requires authorisation."""
-        await self.http.delete_gist(gist)
+        return await self.http.delete_gist(gist)
 
     async def get_org(self, org: str) -> Organization:
         """Fetch a Github organization from it's name."""
