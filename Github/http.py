@@ -255,8 +255,8 @@ class http:
                 'content': file.read()
             }
         data = json.dumps(data)
-        _headers = self.session.headers
-        result = self.session.post(CREATE_GIST_URL, data=data, headers=_headers|{'Accept': 'application/vnd.github.v3+json'})
+        _headers = dict(self.session.headers)
+        result = await self.session.post(CREATE_GIST_URL, data=data, headers=_headers|{'Accept': 'application/vnd.github.v3+json'})
         if 201 == result.status:
             return await result.json()
         raise InvalidToken
