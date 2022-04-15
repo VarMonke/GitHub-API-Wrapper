@@ -98,7 +98,7 @@ class User(_BaseUser):
                 continue
 
     def __repr__(self) -> str:
-        return f'<User; login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>'
 
 
 class PartialUser(_BaseUser):
@@ -115,7 +115,7 @@ class PartialUser(_BaseUser):
         self.avatar_url = response.get('avatar_url')
 
     def __repr__(self) -> str:
-        return f'<PartialUser; login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
+        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
 
     async def _get_user(self) -> User:
         """Upgrades the PartialUser to a User object.""" 
@@ -162,11 +162,9 @@ class Repository(APIObject):
                 setattr(self, key, dt_formatter(value))
                 continue
 
-            if 'license' in key and value is None:
-                setattr(self, key, None)
-                continue
-
-            if 'license' in key and value is not None:
+            if 'license' in key:
+                if value is None:
+                    setattr(self, key,None)
                 setattr(self, key, value['name'])
                 continue
 
@@ -175,8 +173,7 @@ class Repository(APIObject):
                 continue
 
     def __repr__(self) -> str:
-        return f'<Repository; id: {self.id}, name: {self.name!r}, owner: {self.owner}, updated_at: {self.updated_at}, default_branch: {self.default_branch!r}, license: {self.license!r}>'
-
+        return f'<{self.__class__.__name__}; id: {self.id}, name: {self.name!r}, owner: {self.owner!r}>'
 
 class Issue(APIObject):
     __slots__ = (
@@ -211,7 +208,7 @@ class Issue(APIObject):
                 continue
 
     def __repr__(self) -> str:
-        return f'<Issue; id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
+        return f'<{self.__class__.__name__}; id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
 
 
 #=== Gist stuff ===#
@@ -257,7 +254,7 @@ class Gist(APIObject):
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f'<Gist; id: {self.id}, owner: {self.owner}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__}; id: {self.id}, owner: {self.owner}, created_at: {self.created_at}>'
 
 
 #=== Organization stuff ===#
@@ -293,4 +290,4 @@ class Organization(APIObject):
                 continue
 
     def __repr__(self):
-        return f'<Organization; login: {self.login!r}, id: {self.id}, html_url: {self.html_url}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, html_url: {self.html_url}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
