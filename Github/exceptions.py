@@ -1,25 +1,44 @@
 #== exceptions.py ==#
 
 import datetime
-
 __all__ = (
     'APIError',
+    'HTTPException',
+    'ClientException',
+    'ResourceNotFound',
     'Ratelimited',
     'WillExceedRatelimit',
-    'UserNotFound',
-    'OrganizationNotFound',
-    'RepositoryNotFound',
-    'ObjectNotFound',
-    'IssueNotFound',
     'NoAuthProvided',
     'InvalidAuthCombination',
     'InvalidToken',
+    'LoginFailure',
+    'NotStarted',
     'AlreadyStarted',
-    'NotStarted'
-)
+    'UserNotFound',
+    'RepositoryNotFound',
+    'IssueNotFound',
+    'OrganizationNotFound',
+    'RepositoryAlreadyExists',
+    )
 
 class APIError(Exception):
     """Base level exceptions raised by errors related to any API request or call."""
+    pass
+
+class HTTPException(Exception):
+    """Base level exceptions raised by errors related to HTTP requests."""
+    pass
+
+class ClientException(Exception):
+    """Base level exceptions raised by errors related to the client."""
+    pass
+
+class ResourceNotFound(Exception):
+    """Base level exceptions raised when a resource is not found."""
+    pass
+
+class ResourceAlreadyExists(Exception):
+    """Base level exceptions raised when a resource already exists."""
     pass
 
 class Ratelimited(APIError):
@@ -36,73 +55,73 @@ class WillExceedRatelimit(APIError):
         msg = msg.format(response.header['X-RateLimit-Remaining'], count)
         super().__init__(msg)
 
-class UserNotFound(APIError):
+class NoAuthProvided(ClientException):
+    """Raised when no authentication is provided."""
     def __init__(self):
-        msg = 'User not found.'
+        msg = 'This action required autentication. Pass username and token kwargs to your client instance.'
         super().__init__(msg)
 
-class OrganizationNotFound(APIError):
+class InvalidToken(ClientException):
+    """Raised when the token provided is invalid."""
     def __init__(self):
-        msg = 'Organization not found.'
+        msg = 'The token provided is invalid.'
         super().__init__(msg)
 
-class RepositoryNotFound(APIError):
+class InvalidAuthCombination(ClientException):
+    """Raised when the username and token are both provided."""
     def __init__(self):
-        msg = 'Repository not found.'
+        msg = 'The username and token cannot be used together.'
         super().__init__(msg)
 
-class ObjectNotFound(APIError):
+class LoginFailure(ClientException):
+    """Raised when the login attempt fails."""
     def __init__(self):
-        msg = 'The requested object was not found, ensure spelling is correct before proceeding.'
+        msg = 'The login attempt failed. Provide valid credentials.'
         super().__init__(msg)
 
-class IssueNotFound(APIError):
+class NotStarted(ClientException):
+    """Raised when the client is not started."""
     def __init__(self):
-        msg = 'The requested issue was not found, ensure spelling is correct before proceeding.'
+        msg = 'The client is not started. Run Github.GHClient() to start.'
         super().__init__(msg)
 
-class NoAuthProvided(APIError):
-    """Raised when no proper authorization or invalid authorization is given to the client"""
+class AlreadyStarted(ClientException):
+    """Raised when the client is already started."""
     def __init__(self):
-        msg = 'Without authorization, this client doesn\'t have it\'s own repository.'
+        msg = 'The client is already started.'
         super().__init__(msg)
 
-class InvalidAuthCombination(APIError):
+class MissingPermissions(APIError):
     def __init__(self):
-        msg = 'You must provide both a username and a user token or neither.'
+        msg = 'You do not have permissions to perform this action.'
         super().__init__(msg)
 
-class InvalidToken(APIError):
-    def __init__(self) -> None:
-        msg = "The token you provided was invalid, please check again."
+class UserNotFound(ResourceNotFound):
+    def __init__(self):
+        msg = 'The requested user was not found.'
         super().__init__(msg)
 
-class AlreadyStarted(APIError):
-    """Raised when start is called multiple times."""
+class RepositoryNotFound(ResourceNotFound):
     def __init__(self):
-        msg = 'This client has already been started and cannot be started again.'
+        msg = 'The requested repository is either private or does not exist.'
         super().__init__(msg)
 
-class NotStarted(APIError):
-    """Raised when a call is made before start is called."""
+class IssueNotFound(ResourceNotFound):
     def __init__(self):
-        msg = 'You must call `await <Github.GHClient_instance>.start()` before making this call.'
+        msg = 'The requested issue was not found.'
         super().__init__(msg)
 
-class RepositoryAlreadyExists(APIError):
-    """Raised when a repository already exists."""
+class OrganizationNotFound(ResourceNotFound):
     def __init__(self):
-        msg = 'The repository you are trying to create already exists.'
+        msg = 'The requested organization was not found.'
         super().__init__(msg)
 
-class GistNotFound(APIError):
-    """Raised when a gist is not found."""
+class GistNotFound(ResourceNotFound):
     def __init__(self):
-        msg = 'The gist you are trying to access does not exist.'
+        msg = 'The requested gist was not found.'
         super().__init__(msg)
 
-class MissingPermissions(NoAuthProvided): #Why did I subclass NoAuthProvided?
-    """Raised when a user does not have permissions to perform an action."""
+class RepositoryAlreadyExists(ResourceAlreadyExists):
     def __init__(self):
-        msg = 'You do not have permission to perform this action.'
+        msg = 'The requested repository already exists.'
         super().__init__(msg)
