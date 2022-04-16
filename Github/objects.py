@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 from datetime import datetime
 import io
+import os
+from contextlib import nullcontext
 
 __all__ = (
     'APIObject',
@@ -220,11 +222,17 @@ class File:
 
     def read(self) -> str:
         if isinstance(self.fp, str):
-            with open(self.fp) as fp:
-                data = fp.read()
-            return data
+            if os.path.exists(self.fp):
+                with open(self.fp) as fp:
+                    data = fp.read()
+                return data
+            return self.fp
+        elif isinstance(self.fp, io.BytesIO):
+            return self.fp.read().decode('utf-8')
+        elif isinstance(self.fp, io.StringIO):
+            return self.fp.getvalue()
         else:
-            return self.fp.read()
+          raise TypeError(f'Expected str, io.StringIO, or io.BytesIO, got {type(self.fp)}')
 
 class Gist(APIObject):
     __slots__ = (
