@@ -5,6 +5,7 @@ __pycache__/
 
 #var is weird
 test.py
+.vscode/
 
 # C extensions
 *.so
