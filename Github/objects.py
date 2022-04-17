@@ -165,10 +165,10 @@ class Repository(APIObject):
                 continue
 
             if 'license' in key:
-                if value is None:
-                    setattr(self, key,None)
-                setattr(self, key, value['name'])
-                continue
+                if value is not None:
+                    setattr(self, key, value.get('name'))
+                    continue
+                setattr(self, key, None)
 
             else:
                 setattr(self, key, value)

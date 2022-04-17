@@ -9,6 +9,7 @@ from collections import namedtuple
 from datetime import datetime
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
+import platform
 
 if TYPE_CHECKING:
     from .main import File
@@ -19,6 +20,7 @@ from .exceptions import *
 from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
 from .objects import APIObject, User, Gist, Repository, Organization
 from .urls import *
+__version__ = '0.0.1'
 
 __all__ = (
     'Paginator',
@@ -62,7 +64,7 @@ trace_config.on_request_end.append(on_req_end)
 async def make_session(*, headers: dict[str, str], authorization: aiohttp.BasicAuth | None) -> aiohttp.ClientSession:
     """This makes the ClientSession, attaching the trace config and ensuring a UA header is present."""
     if not headers.get('User-Agent'):
-        headers['User-Agent'] = 'Github-API-Wrapper'
+        headers['User-Agent'] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python {platform.python_version()} aiohttp {aiohttp.__version__}'
 
     session = aiohttp.ClientSession(
         auth=authorization,
@@ -124,7 +126,7 @@ GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = GithubGistDa
 class http:
     def __init__(self, headers: dict[str, str | int], auth: aiohttp.BasicAuth | None):
         if not headers.get('User-Agent'):
-            headers['User-Agent'] = 'Github-API-Wrapper'
+            headers['User-Agent'] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python {platform.python_version()} aiohttp {aiohttp.__version__}'
         self._rates = Rates('', '', '', '', '')
         self.headers = headers
         self.auth = auth
@@ -157,6 +159,13 @@ class http:
             auth=auth,
             trace_configs=config
         )
+
+    def data(self):
+        #return session headers and auth
+        headers = {**self.session.headers}
+        auth = {'username': self.auth.login, 'token': self.auth.password}
+
+        return {'headers': headers, 'auth': auth}
 
     async def get_self(self) -> GithubUserData:
         """Returns the authenticated User's data"""

@@ -60,7 +60,12 @@ class GHClient:
 
     async def update_auth(self, username: str, token: str) -> None:
         """Allows you to input auth information after instantiating the client."""
-        await self.http.update_auth(username, token)
+        #check if username and token is valid
+        await self.http.update_auth(username=username, token=token)
+        try:
+            await self.http.get_self()
+        except exceptions.InvalidToken as exc:
+            raise exceptions.InvalidToken from exc
 
     async def start(self) -> 'GHClient':
         """Main entry point to the wrapper, this creates the ClientSession."""
@@ -124,7 +129,7 @@ class GHClient:
     async def create_repo(self, name: str, description: str = 'Repository created using Github-Api-Wrapper.', public: bool = False,gitignore: str = None, license: str = None) -> Repository:
         return Repository(await self.http.create_repo(name,description,public,gitignore,license), self.http.session)
 
-    async def delete_repo(self, owner: str = None, repo: str= None) -> None:
+    async def delete_repo(self, repo: str= None, owner: str = None) -> None:
         """Delete a Github repository, requires authorisation."""
         owner = owner or self.username
         return await self.http.delete_repo(owner, repo)
