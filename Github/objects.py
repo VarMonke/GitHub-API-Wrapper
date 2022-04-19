@@ -144,7 +144,6 @@ class Repository(APIObject):
         'clone_url',
         'stargazers_count',
         'watchers_count',
-        'forks',
         'license',
         )
     def __init__(self, response: dict, _http: http) -> None:
@@ -176,6 +175,22 @@ class Repository(APIObject):
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__}; id: {self.id}, name: {self.name!r}, owner: {self.owner!r}>'
+
+    @property
+    def is_fork(self) -> bool:
+        return self._response.get('fork')
+
+    @property
+    def language(self) -> str:
+        return self._response.get('language')
+
+    @property
+    def open_issues(self) -> int:
+        return self._response.get('open_issues')
+
+    @property
+    def forks(self) -> int:
+        return self._response.get('forks')
 
 class Issue(APIObject):
     __slots__ = (
@@ -212,6 +227,13 @@ class Issue(APIObject):
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__}; id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
 
+    @property
+    def updated_at(self) -> str:
+        return dt_formatter(self._response.get('updated_at'))
+
+    @property
+    def html_url(self) -> str:
+        return self._response.get('html_url')
 
 #=== Gist stuff ===#
 
@@ -237,14 +259,12 @@ class File:
 class Gist(APIObject):
     __slots__ = (
         'id',
-        'description',
         'html_url',
         'node_id',
         'files',
         'public',
         'owner',
         'created_at',
-        'comments',
         'truncated',
         )
     def __init__(self, response: dict, _http: http) -> None:
@@ -264,6 +284,22 @@ class Gist(APIObject):
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__}; id: {self.id}, owner: {self.owner}, created_at: {self.created_at}>'
 
+    @property
+    def updated_at(self) -> str:
+        return dt_formatter(self._response.get('updated_at'))
+
+    @property
+    def comments(self) -> str:
+        return self._response.get('comments')
+
+    @property
+    def discussion(self) -> str:
+        return self._response.get('discussion')
+
+    @property
+    def raw(self) -> str:
+        return self._response
+
 
 #=== Organization stuff ===#
 
@@ -271,7 +307,6 @@ class Organization(APIObject):
     __slots__ = (
     'login',
     'id',
-    'html_url',
     'is_verified',
     'public_repos',
     'public_gists',
@@ -298,4 +333,12 @@ class Organization(APIObject):
                 continue
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, html_url: {self.html_url}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+
+    @property
+    def description(self):
+        return self._response.get('description')
+
+    @property
+    def html_url(self):
+        return self._response.get('html_url')

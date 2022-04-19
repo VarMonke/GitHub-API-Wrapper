@@ -261,6 +261,7 @@ class http:
         data['files'] = {}
         for file in files:
             data['files'][file.filename] = {
+                'filename' : file.filename, # helps editing the file
                 'content': file.read()
             }
         data = json.dumps(data)
@@ -285,4 +286,3 @@ class http:
         if result.status == 401:
             raise NoAuthProvided
         raise RepositoryAlreadyExists
-
