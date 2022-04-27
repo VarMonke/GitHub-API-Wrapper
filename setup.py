@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 version = '1.0.0'
 
 packages = [
-    'github',
+    'Github',
 ]
 
 readme = ''
@@ -14,7 +14,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(
-    name='github',
+    name='Github',
     author='VarMonke & sudosnok',
     url='https://github.com/VarMonke/Github-Api-Wrapper',
     version=version,
