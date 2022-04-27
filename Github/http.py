@@ -163,10 +163,7 @@ class http:
     def data(self):
         #return session headers and auth
         headers = {**self.session.headers}
-        if self.auth is not None:
-            auth = {'username': self.auth.login, 'token': self.auth.password}
-        auth = None
-        return {'headers': headers, 'auth': auth}
+        return {'headers': headers, 'auth': self.auth}
 
     async def latency(self):
         """Returns the latency of the current session."""
