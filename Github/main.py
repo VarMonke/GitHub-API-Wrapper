@@ -16,8 +16,6 @@ from . import exceptions
 from .cache import RepoCache, UserCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
-from .urls import BASE_URL
-
 
 class GHClient:
     _auth = None
@@ -46,7 +44,7 @@ class GHClient:
         return self.start().__await__()
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; has_auth={bool(self._auth)}>'
+        return f'<{self.__class__.__name__} has_auth={bool(self._auth)}>'
 
     def __del__(self):
         asyncio.create_task(self.http.session.close())
@@ -59,7 +57,7 @@ class GHClient:
             for key, value in self.http.session._rates._asdict().items():
                 output.append(f'{key} : {value}')
             return output
-        return self.http.session._rates._asdict()
+        return self.http.session._rates
 
     async def update_auth(self, username: str, token: str) -> None:
         """Allows you to input auth information after instantiating the client."""

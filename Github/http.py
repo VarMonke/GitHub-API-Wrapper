@@ -11,15 +11,13 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Dict, Union, List
 import platform
 
-if TYPE_CHECKING:
-    from .main import File
-
 import aiohttp
 
 from .exceptions import *
 from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
-from .objects import APIObject, User, Gist, Repository, Organization
+from .objects import APIObject, User, Gist, Repository, Organization, File
 from .urls import *
+
 __version__ = '0.0.1'
 
 __all__ = (
