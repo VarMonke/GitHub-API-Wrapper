@@ -8,7 +8,7 @@ import re
 from collections import namedtuple
 from datetime import datetime
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Union, List
 import platform
 
 if TYPE_CHECKING:
@@ -61,7 +61,7 @@ trace_config = aiohttp.TraceConfig()
 trace_config.on_request_start.append(on_req_start)
 trace_config.on_request_end.append(on_req_end)
 
-async def make_session(*, headers: dict[str, str], authorization: aiohttp.BasicAuth | None) -> aiohttp.ClientSession:
+async def make_session(*, headers: Dict[str, str], authorization: Union[aiohttp.BasicAuth, None]) -> aiohttp.ClientSession:
     """This makes the ClientSession, attaching the trace config and ensuring a UA header is present."""
     if not headers.get('User-Agent'):
         headers['User-Agent'] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python {platform.python_version()} aiohttp {aiohttp.__version__}'
@@ -81,7 +81,7 @@ class Paginator:
         self.session = session
         self.response = response
         self.should_paginate = bool(self.response.headers.get('Link', False))
-        types: dict[str, APIObject] = {
+        types: Dict[str, APIObject] = {
             'user': User,
             'gist' : Gist,
             'repo' : Repository
@@ -93,15 +93,15 @@ class Paginator:
         self.next_page = self.current_page + 1
         self.parse_header(response)
 
-    async def fetch_page(self, link) -> dict[str, str | int]:
+    async def fetch_page(self, link) -> Dict[str, Union[str, int]]:
         """Fetches a specific page and returns the JSON."""
         return await (await self.session.get(link)).json()
 
-    async def early_return(self) -> list[APIObject]:
+    async def early_return(self) -> List[APIObject]:
         # I don't rightly remember what this does differently, may have a good ol redesign later
         return [self.target_type(data, self.session) for data in await self.response.json()]
 
-    async def exhaust(self) -> list[APIObject]:
+    async def exhaust(self) -> List[APIObject]:
         """Iterates through all of the pages for the relevant object and creates them."""
         if self.should_paginate:
             return await self.early_return()
@@ -121,12 +121,12 @@ class Paginator:
             raise WillExceedRatelimit(response, self.max_page)
         self.bare_link = groups[0][0][:-1]
 
-GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = GithubGistData = dict[str, str | int]
+GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = GithubGistData = Dict[str, Union [str, int]]
 
 class http:
-    def __init__(self, headers: dict[str, str | int], auth: aiohttp.BasicAuth | None):
+    def __init__(self, headers: Dict[str, Union[str, int]], auth: Union[aiohttp.BasicAuth, None]):
         if not headers.get('User-Agent'):
-            headers['User-Agent'] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python {platform.python_version()} aiohttp {aiohttp.__version__}'
+            headers['User-Agent'] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python/{platform.python_version()} aiohttp/{aiohttp.__version__}'
         self._rates = Rates('', '', '', '', '')
         self.headers = headers
         self.auth = auth
@@ -142,7 +142,7 @@ class http:
         )
         return self
 
-    def update_headers(self, *, flush: bool = False, new_headers: dict[str, str | int]):
+    def update_headers(self, *, flush: bool = False, new_headers: Dict[str, Union[str, int]]):
         if flush:
             from multidict import CIMultiDict
             self.session.headers = CIMultiDict(**new_headers)
@@ -181,21 +181,21 @@ class http:
             return await result.json()
         raise UserNotFound
 
-    async def get_user_repos(self, _user: User) -> list[GithubRepoData]:
+    async def get_user_repos(self, _user: User) -> List[GithubRepoData]:
         result = await self.session.get(USER_REPOS_URL.format(_user.login))
         if 200 <= result.status <= 299:
             return await result.json()
         else:
             print('This shouldn\'t be reachable')
 
-    async def get_user_gists(self, _user: User) -> list[GithubGistData]:
+    async def get_user_gists(self, _user: User) -> List[GithubGistData]:
         result = await self.session.get(USER_GISTS_URL.format(_user.login))
         if 200 <= result.status <= 299:
             return await result.json()
         else:
             print('This shouldn\'t be reachable')
 
-    async def get_user_orgs(self, _user: User) -> list[GithubOrgData]:
+    async def get_user_orgs(self, _user: User) -> List[GithubOrgData]:
         result = await self.session.get(USER_ORGS_URL.format(_user.login))
         if 200 <= result.status <= 299:
             return await result.json()
@@ -216,7 +216,7 @@ class http:
             return await result.json()
         raise IssueNotFound
 
-    async def delete_repo(self, owner: str,repo_name: str) -> None:
+    async def delete_repo(self, owner: str, repo_name: str) -> None:
         """Deletes a Repo from the given owner and repo name."""
         result = await self.session.delete(REPO_URL.format(owner, repo_name))
         if 204 <= result.status <= 299:
@@ -251,7 +251,7 @@ class http:
     async def create_gist(
         self,
         *,
-        files: list['File'] = [],
+        files: List['File'] = [],
         description: str = 'Default description',
         public: bool = False
     ) -> GithubGistData:
