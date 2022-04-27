@@ -8,7 +8,7 @@ __all__ = (
 
 import asyncio
 import functools
-from typing import Union, List
+from typing import Union, List, Dict 
 
 import aiohttp
 
@@ -16,7 +16,7 @@ from . import exceptions
 from .cache import RepoCache, UserCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
-from Github.urls import BASE_URL
+from .urls import BASE_URL
 
 
 class GHClient:
@@ -107,12 +107,6 @@ class GHClient:
             return wrapped
         return wrapper
 
-    async def latency(self) -> int:
-        """Returns the latency of the client."""
-        start = datetime.utcnow()
-        await self.http.session.get(BASE_URL + '/zen')
-        return (datetime.utcnow() - start).total_seconds()
-
     #@_cache(type='User')
     async def get_self(self) -> User:
         """Returns the authenticated User object."""
@@ -158,6 +152,12 @@ class GHClient:
     async def get_org(self, org: str) -> Organization:
         """Fetch a Github organization from it's name."""
         return Organization(await self.http.get_org(org), self.http.session)
+
+    async def latency(self) -> float:
+        """Returns the latency of the client."""
+        start = datetime.utcnow()
+        await self.http.session.get(BASE_URL + '/zen')
+        return (datetime.utcnow() - start).total_seconds()
 
 
 
