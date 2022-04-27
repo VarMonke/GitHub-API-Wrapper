@@ -7,6 +7,7 @@ __all__ = (
 
 import asyncio
 import functools
+from typing import Union, List
 
 import aiohttp
 
@@ -23,11 +24,11 @@ class GHClient:
     def __init__(
         self,
         *,
-        username: str | None = None,
-        token: str | None = None,
+        username: Union[str, None] = None,
+        token: Union[str, None] = None,
         user_cache_size: int = 30,
         repo_cache_size: int = 15,
-        custom_headers: dict[str, str | int] = {}
+        custom_headers: dict[str, Union[str, int]] = {}
     ):
         """The main client, used to start most use-cases."""
         self._headers = custom_headers
@@ -43,7 +44,7 @@ class GHClient:
         return self.start().__await__()
 
     def __repr__(self) -> str:
-        return f'<Github Client; has_auth={bool(self._auth)}>'
+        return f'<{self.__class__.__name__}; has_auth={bool(self._auth)}>'
 
     def __del__(self):
         asyncio.create_task(self.http.session.close())
@@ -138,7 +139,7 @@ class GHClient:
         """Fetch a Github gist from it's id."""
         return Gist(await self.http.get_gist(gist), self.http.session)
 
-    async def create_gist(self, *,  files: list[File], description: str, public: bool) -> Gist:
+    async def create_gist(self, *,  files: List[File], description: str, public: bool) -> Gist:
         """Creates a Gist with the given files, requires authorisation."""
         return Gist(await self.http.create_gist(files=files, description=description, public=public), self.http.session)
 

@@ -1,7 +1,7 @@
 #== objects.py ==#
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Union, List, Dict
 
 if TYPE_CHECKING:
     from .http import http
@@ -38,7 +38,7 @@ class APIObject:
         '_http'
     )
 
-    def __init__(self, response: dict[str, str | int | dict[str, str | int]], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any] , _http: http) -> None:
         self._http = _http
         self._response = response
 
@@ -238,7 +238,7 @@ class Issue(APIObject):
 #=== Gist stuff ===#
 
 class File:
-    def __init__(self, fp: str | io.StringIO, filename: str = 'DefaultFilename.txt'):
+    def __init__(self, fp: Union[str, io.StringIO], filename: str = 'DefaultFilename.txt'):
         self.fp = fp
         self.filename = filename
 
