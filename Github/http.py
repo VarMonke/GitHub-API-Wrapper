@@ -163,9 +163,16 @@ class http:
     def data(self):
         #return session headers and auth
         headers = {**self.session.headers}
-        auth = {'username': self.auth.login, 'token': self.auth.password}
-
+        if self.auth:
+            auth = {'username': self.auth.login, 'token': self.auth.password}
+        auth = None
         return {'headers': headers, 'auth': auth}
+
+    async def latency(self):
+        """Returns the latency of the current session."""
+        start = datetime.utcnow()
+        await self.session.get(BASE_URL)
+        return (datetime.utcnow() - start).total_seconds()
 
     async def get_self(self) -> GithubUserData:
         """Returns the authenticated User's data"""

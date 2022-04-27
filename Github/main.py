@@ -155,9 +155,8 @@ class GHClient:
 
     async def latency(self) -> float:
         """Returns the latency of the client."""
-        start = datetime.utcnow()
-        await self.http.session.get(BASE_URL + '/zen')
-        return (datetime.utcnow() - start).total_seconds()
+        return await self.http.latency()
+
 
 
 
