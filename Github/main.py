@@ -25,7 +25,7 @@ class GHClient:
         self,
         *,
         username: Union[str, None] = None,
-        token: str | None = None,
+        token: Union[str, None] = None,
         user_cache_size: int = 30,
         repo_cache_size: int = 15,
         custom_headers: dict[str, Union[str, int]] = {}
@@ -44,7 +44,7 @@ class GHClient:
         return self.start().__await__()
 
     def __repr__(self) -> str:
-        return f'<Github Client; has_auth={bool(self._auth)}>'
+        return f'<{self.__class__.__name__}; has_auth={bool(self._auth)}>'
 
     def __del__(self):
         asyncio.create_task(self.http.session.close())
