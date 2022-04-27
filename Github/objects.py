@@ -9,7 +9,6 @@ if TYPE_CHECKING:
 from datetime import datetime
 import io
 import os
-from contextlib import nullcontext
 
 __all__ = (
     'APIObject',
@@ -60,7 +59,7 @@ class _BaseUser(APIObject):
         self.id = response.get('id')
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; id = {self.id}, login = {self.login!r}>'
+        return f'<{self.__class__.__name__} id = {self.id}, login = {self.login!r}>'
 
     async def repos(self) -> list[Repository]:
         results = await self._http.get_user_repos(self)
@@ -100,7 +99,7 @@ class User(_BaseUser):
                 continue
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>'
 
 
 class PartialUser(_BaseUser):
@@ -117,7 +116,7 @@ class PartialUser(_BaseUser):
         self.avatar_url = response.get('avatar_url')
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
+        return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
 
     async def _get_user(self) -> User:
         """Upgrades the PartialUser to a User object.""" 
@@ -174,7 +173,7 @@ class Repository(APIObject):
                 continue
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; id: {self.id}, name: {self.name!r}, owner: {self.owner!r}>'
+        return f'<{self.__class__.__name__} id: {self.id}, name: {self.name!r}, owner: {self.owner!r}>'
 
     @property
     def is_fork(self) -> bool:
@@ -225,7 +224,7 @@ class Issue(APIObject):
                 continue
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
+        return f'<{self.__class__.__name__} id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
 
     @property
     def updated_at(self) -> str:
@@ -282,7 +281,7 @@ class Gist(APIObject):
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}; id: {self.id}, owner: {self.owner}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__} id: {self.id}, owner: {self.owner}, created_at: {self.created_at}>'
 
     @property
     def updated_at(self) -> str:
@@ -333,7 +332,7 @@ class Organization(APIObject):
                 continue
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}; login: {self.login!r}, id: {self.id}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+        return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
 
     @property
     def description(self):

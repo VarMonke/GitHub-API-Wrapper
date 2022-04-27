@@ -3,10 +3,10 @@ from setuptools import setup
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-version = '0.0.1'
+version = '1.0.0'
 
 packages = [
-    'Github',
+    'github',
 ]
 
 readme = ''
@@ -14,7 +14,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(
-    name='GithubAPI',
+    name='github',
     author='VarMonke & sudosnok',
     url='https://github.com/VarMonke/Github-Api-Wrapper',
     version=version,

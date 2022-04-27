@@ -1,5 +1,6 @@
 #== main.py ==#
 from __future__ import annotations
+from datetime import datetime
 
 __all__ = (
     'GHClient',
@@ -15,6 +16,7 @@ from . import exceptions
 from .cache import RepoCache, UserCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
+from Github.urls import BASE_URL
 
 
 class GHClient:
@@ -104,6 +106,12 @@ class GHClient:
                         return res
             return wrapped
         return wrapper
+
+    async def latency(self) -> int:
+        """Returns the latency of the client."""
+        start = datetime.utcnow()
+        await self.http.session.get(BASE_URL + '/zen')
+        return (datetime.utcnow() - start).total_seconds()
 
     #@_cache(type='User')
     async def get_self(self) -> User:
