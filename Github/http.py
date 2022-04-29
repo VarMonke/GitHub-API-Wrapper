@@ -17,8 +17,7 @@ from .exceptions import *
 from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
 from .objects import APIObject, User, Gist, Repository, Organization, File
 from .urls import *
-
-__version__ = '0.0.1'
+from . import __version__
 
 __all__ = (
     'Paginator',
