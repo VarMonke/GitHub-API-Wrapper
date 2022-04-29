@@ -8,4 +8,4 @@ from .exceptions import *
 
 __title__ = 'Github-Api-Wrapper'
 __authors__ = 'VarMonke', 'sudosnok'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
