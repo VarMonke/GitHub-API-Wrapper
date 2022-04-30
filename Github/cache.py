@@ -19,7 +19,7 @@ class _BaseCache(UserDict[K, V]):
 
     def __init__(self, max_size: int, *args: Any) -> None:
         self._max_size: int = max(min(max_size, 15), 0)  # bounding max_size to 15 for now
-        self._lru_keys: Deque[K] = deque[K](maxlen=self._max_size)
+        self._lru_keys: Deque[K] = deque(maxlen=self._max_size)
         super().__init__(*args)
 
     def __getitem__(self, __k: K) -> V:
