@@ -52,12 +52,19 @@ class GHClient:
         """The main client, used to start most use-cases."""
         self._headers = custom_headers
 
-        self._user_cache = ObjectCache[Any, User](user_cache_size)
-        self._repo_cache = ObjectCache[Any, Repository](repo_cache_size)
         if username and token:
             self.username = username
             self.token = token
             self._auth = aiohttp.BasicAuth(username, token)
+        else:
+            self._auth = None
+            self.username = None
+            self.token = None
+
+        self.http = http(headers=custom_headers, auth=self._auth)
+
+        self._user_cache = ObjectCache[Any, User](user_cache_size)
+        self._repo_cache = ObjectCache[Any, Repository](repo_cache_size)
 
         # Cache manegent
         self._cache(type='user')(self.get_self)  # type: ignore
@@ -70,11 +77,16 @@ class GHClient:
     def __await__(self) -> Generator[Any, Any, Self]:
         return self.start().__await__()
 
+    async def __aenter__(self) -> Self:
+        await self.start()
+        return self
+
+    async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
+        if session := getattr(self.http, 'session', None):
+            await session.close()
+
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} has_auth={bool(self._auth)}>'
-
-    def __del__(self):
-        asyncio.create_task(self.http.session.close(), name='cleanup-session-github-api-wrapper')
 
     @overload
     def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]:
@@ -185,7 +197,7 @@ class GHClient:
 
     async def delete_repo(self, repo: str, owner: str) -> Optional[str]:
         """Delete a Github repository, requires authorisation."""
-        owner = owner or self.username
+        owner = owner or self.username  # type: ignore
         return await self.http.delete_repo(owner, repo)
 
     async def get_gist(self, gist: int) -> Gist:
