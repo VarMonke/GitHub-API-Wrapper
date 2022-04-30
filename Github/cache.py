@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from collections import deque
-from collections.abc import MutableMapping
+from collections import deque, UserDict
 from typing import Any, Deque, Tuple, TypeVar
 
 __all__: Tuple[str, ...] = ('ObjectCache',)
@@ -13,7 +12,7 @@ K = TypeVar('K')
 V = TypeVar('V')
 
 
-class _BaseCache(MutableMapping[K, V]):
+class _BaseCache(UserDict[K, V]):
     """This is a rough implementation of an LRU Cache using a deque and a dict."""
 
     __slots__: Tuple[str, ...] = ('_max_size', '_lru_keys')
