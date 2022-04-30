@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections import deque, UserDict
-from typing import Any, Deque, Tuple, TypeVar
+from collections import deque
+from typing import Any, Deque, Tuple, TypeVar, Dict
 
 __all__: Tuple[str, ...] = ('ObjectCache',)
 
@@ -12,14 +12,14 @@ K = TypeVar('K')
 V = TypeVar('V')
 
 
-class _BaseCache(UserDict[K, V]):
+class _BaseCache(Dict[K, V]):
     """This is a rough implementation of an LRU Cache using a deque and a dict."""
 
     __slots__: Tuple[str, ...] = ('_max_size', '_lru_keys')
 
     def __init__(self, max_size: int, *args: Any) -> None:
         self._max_size: int = max(min(max_size, 15), 0)  # bounding max_size to 15 for now
-        self._lru_keys: Deque[K] = deque[K](maxlen=self._max_size)
+        self._lru_keys: Deque[K] = deque(maxlen=self._max_size)
         super().__init__(*args)
 
     def __getitem__(self, __k: K) -> V:
