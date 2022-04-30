@@ -5,9 +5,8 @@ from setuptools import setup
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-path = Path('github/__init__.py')
-with open(path) as f:
-    version = re.search(r'\d[.]\d[.]\d', f.read()).group(1)
+path = Path(__file__).parent / "github/__init__.py"
+version = re.search(r'\d[.]\d[.]\d',path.read_text()).group()
 
 packages = [
     'github',
