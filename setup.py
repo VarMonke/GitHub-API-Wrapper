@@ -1,12 +1,14 @@
+import re
 from setuptools import setup
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-version = '1.0.0'
+with open('github/__init__.py') as f:
+    version = re.search(r'\d[.]\d[.]\d', f.read()).group(1)
 
 packages = [
-    'Github',
+    'github',
 ]
 
 readme = ''
@@ -14,7 +16,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(
-    name='Github',
+    name='github',
     author='VarMonke & sudosnok',
     url='https://github.com/VarMonke/Github-Api-Wrapper',
     version=version,
