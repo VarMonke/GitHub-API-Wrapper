@@ -137,6 +137,8 @@ class http:
             auth=self.auth,
             trace_configs=[trace_config],
         )
+        if not hasattr(self.session, "_rates"):
+            self.session._rates = Rates('', '', '', '', '')
         return self
 
     def update_headers(self, *, flush: bool = False, new_headers: Dict[str, Union[str, int]]):
