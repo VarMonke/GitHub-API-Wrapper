@@ -1,10 +1,12 @@
 import re
+from pathlib import Path
 from setuptools import setup
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-with open('github/__init__.py') as f:
+path = Path('github/__init__.py')
+with open(path) as f:
     version = re.search(r'\d[.]\d[.]\d', f.read()).group(1)
 
 packages = [
