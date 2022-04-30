@@ -3,12 +3,10 @@ from __future__ import annotations
 
 __all__ = ("GHClient",)
 
-import asyncio
 import functools
 import aiohttp
 
 from typing import (
-    TYPE_CHECKING,
     Awaitable,
     Callable,
     Literal,
@@ -35,9 +33,6 @@ P = ParamSpec('P')
 
 
 class GHClient:
-    if TYPE_CHECKING:
-        http: http
-
     has_started: bool = False
 
     def __init__(
