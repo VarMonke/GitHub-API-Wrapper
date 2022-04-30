@@ -25,7 +25,15 @@ __all__ = (
 
 
 LINK_PARSING_RE = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
-Rates = NamedTuple('Rates', 'remaining', 'used', 'total', 'reset_when', 'last_request')
+
+
+class Rates(NamedTuple):
+    remaining: str
+    used: str
+    total: str
+    reset_when: Union[datetime, str]
+    last_request: Union[datetime, str]
+
 
 # aiohttp request tracking / checking bits
 async def on_req_start(
