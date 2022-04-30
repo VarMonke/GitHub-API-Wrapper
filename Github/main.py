@@ -30,8 +30,8 @@ from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
 
 
-T = TypeVar("T")
-P = ParamSpec("P")
+T = TypeVar('T')
+P = ParamSpec('P')
 
 
 class GHClient:
@@ -71,11 +71,11 @@ class GHClient:
         return self.start().__await__()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} has_auth={bool(self._auth)}>"
+        return f'<{self.__class__.__name__} has_auth={bool(self._auth)}>'
 
     def __del__(self):
         asyncio.create_task(
-            self.http.session.close(), name="cleanup-session-github-api-wrapper"
+            self.http.session.close(), name='cleanup-session-github-api-wrapper'
         )
 
     @overload
@@ -139,19 +139,19 @@ class GHClient:
             async def wrapped(
                 self: Self, *args: P.args, **kwargs: P.kwargs
             ) -> Optional[Union[T, User, Repository]]:
-                if type == "user":
-                    if obj := self._user_cache.get(kwargs.get("user")):
+                if type == 'user':
+                    if obj := self._user_cache.get(kwargs.get('user')):
                         return obj
 
                     user: User = await func(self, *args, **kwargs)  # type: ignore
                     self._user_cache[kwargs.get("user")] = user
                     return user
-                if type == "repo":
-                    if obj := self._repo_cache.get(kwargs.get("repo")):
+                if type == 'repo':
+                    if obj := self._repo_cache.get(kwargs.get('repo')):
                         return obj
 
                     repo: Repository = await func(self, *args, **kwargs)  # type: ignore
-                    self._repo_cache[kwargs.get("repo")] = repo
+                    self._repo_cache[kwargs.get('repo')] = repo
                     return repo
 
             return wrapped
@@ -183,7 +183,7 @@ class GHClient:
     async def create_repo(
         self,
         name: str,
-        description: str = "Repository created using Github-Api-Wrapper.",
+        description: str = 'Repository created using Github-Api-Wrapper.',
         public: bool = False,
         gitignore: Optional[str] = None,
         license: Optional[str] = None,
