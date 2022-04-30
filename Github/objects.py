@@ -10,7 +10,7 @@ from datetime import datetime
 import io
 import os
 
-__all__ = (
+__all__: Tuple[str, ...] = (
     'APIObject',
     'dt_formatter',
     'repr_dt',
