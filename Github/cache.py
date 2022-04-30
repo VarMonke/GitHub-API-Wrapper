@@ -1,92 +1,69 @@
-#== cache.py ==#
+# == cache.py ==#
 
 from __future__ import annotations
 
-__all__ = (
-    'UserCache',
-    'RepoCache',
-    'OrgCache',
-)
+from collections import deque, UserDict
+from typing import Any, Deque, Tuple, TypeVar
 
-from collections import deque
-
-from .objects import APIObject, User, Repository, Organization
+__all__: Tuple[str, ...] = ('ObjectCache',)
 
 
-class _BaseCache(dict):
+K = TypeVar('K')
+V = TypeVar('V')
+
+
+class _BaseCache(UserDict[K, V]):
     """This is a rough implementation of an LRU Cache using a deque and a dict."""
-    _max_size: int
-    _lru_keys: deque
-    def __init__(self, max_size: int, *args):
-        self._max_size = max(min(max_size, 15), 0) # bounding max_size to 15 for now
-        self._lru_keys = deque(maxlen=self._max_size)
-        super().__init__(args)
-    
-    def __getitem__(self, __k: str) -> APIObject:
-        target = self._lru_keys.pop(self._lru_keys.index(__k))
+
+    __slots__: Tuple[str, ...] = ('_max_size', '_lru_keys')
+
+    def __init__(self, max_size: int, *args: Any) -> None:
+        self._max_size: int = max(min(max_size, 15), 0)  # bounding max_size to 15 for now
+        self._lru_keys: Deque[K] = deque[K](maxlen=self._max_size)
+        super().__init__(*args)
+
+    def __getitem__(self, __k: K) -> V:
+        index = self._lru_keys.index(__k)
+        target = self._lru_keys[index]
+        del self._lru_keys[index]
+
         self._lru_keys.appendleft(target)
         return super().__getitem__(__k)
 
-    def __setitem__(self, __k: str, __v: APIObject) -> None:
+    def __setitem__(self, __k: K, __v: V) -> None:
         if len(self) == self._max_size:
-            to_pop = self._lru_keys.pop(-1)
-            del self[to_pop]
+            self.__delitem__(self._lru_keys.pop())
+
         self._lru_keys.appendleft(__k)
         return super().__setitem__(__k, __v)
 
-    def update(self, *args, **kwargs) -> None:
-        for key, value in dict(*args, **kwargs).iteritems():
-            self[key] = value
+    def update(self, **kwargs: Any) -> None:
+        for key, value in dict(**kwargs).items():
+            key: K
+            value: V
 
-class UserCache(_BaseCache):
-    """This adjusts the typehints to reflect User objects"""
-    def __getitem__(self, __k: str) -> 'User':
-        target = self._lru_keys.pop(self._lru_keys.index(__k))
+            self.__setitem__(key, value)
+
+
+class ObjectCache(_BaseCache[K, V]):
+    """This adjusts the typehints to reflect Github objects."""
+
+    def __getitem__(self, __k: K) -> V:
+        index = self._lru_keys.index(__k)
+        target = self._lru_keys[index]
         self._lru_keys.appendleft(target)
         return super().__getitem__(__k)
 
-    def __setitem__(self, __k: str, __v: 'User') -> None:
-        if len(self) == self._max_size:
-            to_pop = self._lru_keys.pop(-1)
-            del self[to_pop]
+    def __setitem__(self, __k: K, __v: V) -> None:
+        if self.__len__() == self._max_size:
+            self.__delitem__(self._lru_keys.pop())
+
         self._lru_keys.appendleft(__k)
         return super().__setitem__(__k, __v)
 
-    def update(self, *args, **kwargs) -> None:
-        for key, value in dict(*args, **kwargs).iteritems():
-            self[key] = value
+    def update(self, **kwargs: Any) -> None:
+        for key, value in dict(**kwargs).items():
+            key: K
+            value: V
 
-class RepoCache(_BaseCache):
-    """This adjusts the typehints to reflect Repo objects"""
-    def __getitem__(self, __k: str) -> 'Repository':
-        target = self._lru_keys.pop(self._lru_keys.index(__k))
-        self._lru_keys.appendleft(target)
-        return super().__getitem__(__k)
-
-    def __setitem__(self, __k: str, __v: 'Repository') -> None:
-        if len(self) == self._max_size:
-            to_pop = self._lru_keys.pop(-1)
-            del self[to_pop]
-        self._lru_keys.appendleft(__k)
-        return super().__setitem__(__k, __v)
-
-    def update(self, *args, **kwargs) -> None:
-        for key, value in dict(*args, **kwargs).iteritems():
-            self[key] = value
-
-class OrgCache(_BaseCache):
-    def __getitem__(self, __k: str) -> 'Organization':
-        target = self._lru_keys.pop(self._lru_keys.index(__k))
-        self._lru_keys.appendleft(target)
-        return super().__getitem__(__k)
-
-    def __setitem__(self, __k: str, __v: 'Organization') -> None:
-        if len(self) == self._max_size:
-            to_pop = self._lru_keys.pop(-1)
-            del self[to_pop]
-        self._lru_keys.appendleft(__k)
-        return super().__setitem__(__k, __v)
-
-    def update(self, *args, **kwargs) -> None:
-        for key, value in dict(*args, **kwargs).iteritems():
-            self[key] = value
+            self.__setitem__(key, value)

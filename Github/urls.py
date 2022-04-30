@@ -1,9 +1,9 @@
-#== urls.py ==#
+# == urls.py ==#
 
 BASE_URL = 'https://api.github.com'
 
 
-#== user urls ==#
+# == user urls ==#
 USERS_URL = BASE_URL + '/users/{0}'
 
 USER_HTML_URL = 'https://github.com/users/{0}'
@@ -21,19 +21,19 @@ USER_FOLLOWERS_URL = USERS_URL + '/followers'
 USER_FOLLOWING_URL = USERS_URL + '/following'
 
 
-#== repo urls ==#
-CREATE_REPO_URL = BASE_URL + '/user/repos' #_auth repo create
+# == repo urls ==#
+CREATE_REPO_URL = BASE_URL + '/user/repos'  # _auth repo create
 
-REPOS_URL = BASE_URL + '/repos/{0}' # repos of a user
+REPOS_URL = BASE_URL + '/repos/{0}'  # repos of a user
 
-REPO_URL = BASE_URL + '/repos/{0}/{1}' # a specific repo
+REPO_URL = BASE_URL + '/repos/{0}/{1}'  # a specific repo
 
-REPO_ISSUE_URL = REPO_URL + '/issues/{2}' # a specific issue
+REPO_ISSUE_URL = REPO_URL + '/issues/{2}'  # a specific issue
 
-#== gist urls ==#
-GIST_URL = BASE_URL + '/gists/{0}' # specific gist
+# == gist urls ==#
+GIST_URL = BASE_URL + '/gists/{0}'  # specific gist
 
-CREATE_GIST_URL = BASE_URL + '/gists' # create a gist
+CREATE_GIST_URL = BASE_URL + '/gists'  # create a gist
 
-#== org urls ==#
+# == org urls ==#
 ORG_URL = BASE_URL + '/orgs/{0}'

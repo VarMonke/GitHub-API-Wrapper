@@ -1,7 +1,7 @@
-#== objects.py ==#
+# == objects.py ==#
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Union, List, Dict
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union, Dict
 
 if TYPE_CHECKING:
     from .http import http
@@ -23,21 +23,22 @@ __all__ = (
     'Organization',
 )
 
-def dt_formatter(time_str: str) -> datetime:
+
+def dt_formatter(time_str: str) -> Optional[datetime]:
     if time_str is not None:
         return datetime.strptime(time_str, r"%Y-%m-%dT%H:%M:%SZ")
+
     return None
+
 
 def repr_dt(_datetime: datetime) -> str:
     return _datetime.strftime(r'%d-%m-%Y, %H:%M:%S')
 
-class APIObject:
-    __slots__ = (
-        '_response',
-        '_http'
-    )
 
-    def __init__(self, response: Dict[str, Any] , _http: http) -> None:
+class APIObject:
+    __slots__: Tuple[str, ...] = ('_response', '_http')
+
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         self._http = _http
         self._response = response
 
@@ -45,14 +46,16 @@ class APIObject:
         return f'<{self.__class__.__name__}>'
 
 
-#=== User stuff ===#
+# === User stuff ===#
+
 
 class _BaseUser(APIObject):
     __slots__ = (
         'login',
         'id',
-        )
-    def __init__(self, response: dict, _http: http) -> None:
+    )
+
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
         self._http = _http
         self.login = response.get('login')
@@ -62,19 +65,19 @@ class _BaseUser(APIObject):
         return f'<{self.__class__.__name__} id = {self.id}, login = {self.login!r}>'
 
     async def repos(self) -> list[Repository]:
-        results = await self._http.get_user_repos(self)
+        results = await self._http.get_user_repos(self)  # type: ignore
         return [Repository(data, self._http) for data in results]
 
     async def gists(self) -> list[Gist]:
-        results = await self._http.get_user_gists(self)
+        results = await self._http.get_user_gists(self)  # type: ignore
         return [Gist(data, self._http) for data in results]
 
     async def orgs(self) -> list[Organization]:
-        results = await self._http.get_user_orgs(self)
+        results = await self._http.get_user_orgs(self)  # type: ignore
         return [Organization(data, self._http) for data in results]
 
 
-class User(_BaseUser): 
+class User(_BaseUser):
     __slots__ = (
         'login',
         'id',
@@ -85,11 +88,12 @@ class User(_BaseUser):
         'followers',
         'following',
         'created_at',
-        )
-    def __init__(self, response: dict, _http: http) -> None:
+    )
+
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + _BaseUser.__slots__
-        keys = {key: value for key,value in self._response.items() if key in tmp}
+        keys = {key: value for key, value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if '_at' in key and value is not None:
                 setattr(self, key, dt_formatter(value))
@@ -107,32 +111,37 @@ class PartialUser(_BaseUser):
         'site_admin',
         'html_url',
         'avatar_url',
-        ) + _BaseUser.__slots__
+    ) + _BaseUser.__slots__
 
-    def __init__(self, response: dict, _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
-        self.site_admin = response.get('site_admin')
-        self.html_url = response.get('html_url')
-        self.avatar_url = response.get('avatar_url')
+        self.site_admin: Optional[str] = response.get('site_admin')
+        self.html_url: Optional[str] = response.get('html_url')
+        self.avatar_url: Optional[str] = response.get('avatar_url')
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
 
     async def _get_user(self) -> User:
-        """Upgrades the PartialUser to a User object.""" 
+        """Upgrades the PartialUser to a User object."""
         response = await self._http.get_user(self.login)
         return User(response, self._http)
 
 
-#=== Repository stuff ===#
+# === Repository stuff ===#
+
 
 class Repository(APIObject):
+    if TYPE_CHECKING:
+        id: int
+        name: str
+        owner: str
+
     __slots__ = (
         'id',
         'name',
         'owner',
-        'size'
-        'created_at',
+        'size' 'created_at',
         'url',
         'html_url',
         'archived',
@@ -144,11 +153,12 @@ class Repository(APIObject):
         'stargazers_count',
         'watchers_count',
         'license',
-        )
-    def __init__(self, response: dict, _http: http) -> None:
+    )
+
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
-        keys = {key: value for key,value in self._response.items() if key in tmp}
+        keys = {key: value for key, value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if key == 'owner':
                 setattr(self, key, PartialUser(value, self._http))
@@ -191,6 +201,7 @@ class Repository(APIObject):
     def forks(self) -> int:
         return self._response.get('forks')
 
+
 class Issue(APIObject):
     __slots__ = (
         'id',
@@ -202,10 +213,10 @@ class Issue(APIObject):
         'closed_by',
     )
 
-    def __init__(self, response: dict, _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
-        keys = {key: value for key,value in self._response.items() if key in tmp}
+        keys = {key: value for key, value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if key == 'user':
                 setattr(self, key, PartialUser(value, self._http))
@@ -227,17 +238,19 @@ class Issue(APIObject):
         return f'<{self.__class__.__name__} id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
 
     @property
-    def updated_at(self) -> str:
+    def updated_at(self) -> Optional[datetime]:
         return dt_formatter(self._response.get('updated_at'))
 
     @property
     def html_url(self) -> str:
         return self._response.get('html_url')
 
-#=== Gist stuff ===#
+
+# === Gist stuff ===#
+
 
 class File:
-    def __init__(self, fp: Union[str, io.StringIO], filename: str = 'DefaultFilename.txt'):
+    def __init__(self, fp: Union[str, io.StringIO], filename: str = 'DefaultFilename.txt') -> None:
         self.fp = fp
         self.filename = filename
 
@@ -246,14 +259,17 @@ class File:
             if os.path.exists(self.fp):
                 with open(self.fp) as fp:
                     data = fp.read()
+
                 return data
+
             return self.fp
         elif isinstance(self.fp, io.BytesIO):
-            return self.fp.read().decode('utf-8')
-        elif isinstance(self.fp, io.StringIO):
+            return self.fp.read()
+        elif isinstance(self.fp, io.StringIO):  # type: ignore
             return self.fp.getvalue()
-        else:
-          raise TypeError(f'Expected str, io.StringIO, or io.BytesIO, got {type(self.fp)}')
+
+        raise TypeError(f'Expected str, io.StringIO, or io.BytesIO, got {type(self.fp)}')
+
 
 class Gist(APIObject):
     __slots__ = (
@@ -265,11 +281,12 @@ class Gist(APIObject):
         'owner',
         'created_at',
         'truncated',
-        )
-    def __init__(self, response: dict, _http: http) -> None:
+    )
+
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
-        keys = {key: value for key,value in self._response.items() if key in tmp}
+        keys = {key: value for key, value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if key == 'owner':
                 setattr(self, key, PartialUser(value, self._http))
@@ -284,7 +301,7 @@ class Gist(APIObject):
         return f'<{self.__class__.__name__} id: {self.id}, owner: {self.owner}, created_at: {self.created_at}>'
 
     @property
-    def updated_at(self) -> str:
+    def updated_at(self) -> Optional[datetime]:
         return dt_formatter(self._response.get('updated_at'))
 
     @property
@@ -296,29 +313,30 @@ class Gist(APIObject):
         return self._response.get('discussion')
 
     @property
-    def raw(self) -> str:
+    def raw(self) -> Dict[str, Any]:
         return self._response
 
 
-#=== Organization stuff ===#
+# === Organization stuff ===#
+
 
 class Organization(APIObject):
     __slots__ = (
-    'login',
-    'id',
-    'is_verified',
-    'public_repos',
-    'public_gists',
-    'followers',
-    'following',
-    'created_at',
-    'avatar_url',
+        'login',
+        'id',
+        'is_verified',
+        'public_repos',
+        'public_gists',
+        'followers',
+        'following',
+        'created_at',
+        'avatar_url',
     )
 
-    def __init__(self, response: dict, _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: http) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
-        keys = {key: value for key,value in self._response.items() if key in tmp}
+        keys = {key: value for key, value in self._response.items() if key in tmp}
         for key, value in keys.items():
             if key == 'login':
                 setattr(self, key, value)
