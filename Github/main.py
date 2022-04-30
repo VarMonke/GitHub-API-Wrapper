@@ -58,11 +58,11 @@ class GHClient:
             self.username = username
             self.token = token
             self._auth = aiohttp.BasicAuth(username, token)
-            
+
         # Cache manegent
-        self._cache(type='user')(self.get_self) # type: ignore
-        self._cache(type='user')(self.get_user) # type: ignore
-        self._cache(type='repo')(self.get_repo) # type: ignore
+        self._cache(type='user')(self.get_self)  # type: ignore
+        self._cache(type='user')(self.get_user)  # type: ignore
+        self._cache(type='repo')(self.get_repo)  # type: ignore
 
     def __call__(self, *args: Any, **kwargs: Any) -> Coroutine[Any, Any, Self]:
         return self.start(*args, **kwargs)
@@ -74,9 +74,7 @@ class GHClient:
         return f'<{self.__class__.__name__} has_auth={bool(self._auth)}>'
 
     def __del__(self):
-        asyncio.create_task(
-            self.http.session.close(), name='cleanup-session-github-api-wrapper'
-        )
+        asyncio.create_task(self.http.session.close(), name='cleanup-session-github-api-wrapper')
 
     @overload
     def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]:
@@ -86,9 +84,7 @@ class GHClient:
     def check_limits(self, as_dict: Literal[False] = False) -> List[str]:
         ...
 
-    def check_limits(
-        self, as_dict: bool = False
-    ) -> Union[Dict[str, Union[str, int]], List[str]]:
+    def check_limits(self, as_dict: bool = False) -> Union[Dict[str, Union[str, int]], List[str]]:
         if not self.has_started:
             raise exceptions.NotStarted
         if not as_dict:
@@ -132,13 +128,9 @@ class GHClient:
     ]:
         def wrapper(
             func: Callable[Concatenate[Self, P], Awaitable[T]]
-        ) -> Callable[
-            Concatenate[Self, P], Awaitable[Optional[Union[T, User, Repository]]]
-        ]:
+        ) -> Callable[Concatenate[Self, P], Awaitable[Optional[Union[T, User, Repository]]]]:
             @functools.wraps(func)
-            async def wrapped(
-                self: Self, *args: P.args, **kwargs: P.kwargs
-            ) -> Optional[Union[T, User, Repository]]:
+            async def wrapped(self: Self, *args: P.args, **kwargs: P.kwargs) -> Optional[Union[T, User, Repository]]:
                 if type == 'user':
                     if obj := self._user_cache.get(kwargs.get('user')):
                         return obj
@@ -176,9 +168,7 @@ class GHClient:
 
     async def get_issue(self, *, owner: str, repo: str, issue: int) -> Issue:
         """Fetch a Github Issue from it's name."""
-        return Issue(
-            await self.http.get_repo_issue(owner, repo, issue), self.http
-        )
+        return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http)
 
     async def create_repo(
         self,
@@ -202,14 +192,10 @@ class GHClient:
         """Fetch a Github gist from it's id."""
         return Gist(await self.http.get_gist(gist), self.http)
 
-    async def create_gist(
-        self, *, files: List[File], description: str, public: bool
-    ) -> Gist:
+    async def create_gist(self, *, files: List[File], description: str, public: bool) -> Gist:
         """Creates a Gist with the given files, requires authorisation."""
         return Gist(
-            await self.http.create_gist(
-                files=files, description=description, public=public
-            ),
+            await self.http.create_gist(files=files, description=description, public=public),
             self.http,
         )
 
