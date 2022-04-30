@@ -6,7 +6,7 @@ import json
 import re
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Dict, NamedTuple, Optional, Type, Union, List
+from typing import Dict, NamedTuple, Optional, Type, Tuple, Union, List
 from typing_extensions import TypeAlias
 import platform
 
@@ -18,7 +18,7 @@ from .objects import User, Gist, Repository, File
 from .urls import *
 from . import __version__
 
-__all__ = (
+__all__: Tuple[str, ...] = (
     'Paginator',
     'http',
 )

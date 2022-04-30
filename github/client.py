@@ -1,8 +1,6 @@
 # == main.py ==#
 from __future__ import annotations
 
-__all__ = ("GHClient",)
-
 import functools
 import aiohttp
 
@@ -15,6 +13,7 @@ from typing import (
     Dict,
     Generator,
     Optional,
+    Tuple,
     Union,
     List,
     overload,
@@ -27,6 +26,7 @@ from .cache import ObjectCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
 
+__all__: Tuple[str, ...] = ('GHClient',)
 
 T = TypeVar('T')
 P = ParamSpec('P')

@@ -1,10 +1,11 @@
 # == exceptions.py ==#
 
 import datetime
+from typing import Tuple
 
 from aiohttp import ClientResponse
 
-__all__ = (
+__all__: Tuple[str, ...] = (
     'APIError',
     'HTTPException',
     'ClientException',
