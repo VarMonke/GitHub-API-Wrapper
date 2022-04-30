@@ -120,7 +120,7 @@ class PartialUser(_BaseUser):
         self.avatar_url: Optional[str] = response.get('avatar_url')
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}, html_url: {self.html_url}>'
+        return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, site_admin: {self.site_admin}'
 
     async def _get_user(self) -> User:
         """Upgrades the PartialUser to a User object."""

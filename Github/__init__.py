@@ -6,7 +6,7 @@ __version__ = '1.1.1'
 __license__ = 'MIT'
 __copyright__ = 'Copyright (c) 2020 VarMonke & sudosnok'
 
-from .main import *
+from .client import *
 from .objects import *
 from .http import *
 from .urls import *
