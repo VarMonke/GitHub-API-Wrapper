@@ -8,12 +8,12 @@ __all__ = (
 
 import asyncio
 import functools
-from typing import Union, List, Dict 
+from typing import Any, Union, List, Dict 
 
 import aiohttp
 
 from . import exceptions
-from .cache import RepoCache, UserCache
+from .cache import ObjectCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
 
@@ -32,9 +32,9 @@ class GHClient:
     ):
         """The main client, used to start most use-cases."""
         self._headers = custom_headers
-        bound = lambda hi, lo, value: max(min(value, hi), lo)
-        self._user_cache = UserCache(bound(50, 0, user_cache_size))
-        self._repo_cache = RepoCache(bound(50, 0, repo_cache_size))
+        
+        self._user_cache = ObjectCache[Any, User](user_cache_size)
+        self._repo_cache = ObjectCache[Any, Repository](repo_cache_size)
         if username and token:
             self.username = username
             self.token = token
