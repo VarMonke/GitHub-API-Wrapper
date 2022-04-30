@@ -1,10 +1,8 @@
 # == exceptions.py ==#
 
 import datetime
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from aiohttp import ClientRequest
+from aiohttp import ClientResponse
 
 __all__ = (
     'APIError',
@@ -69,7 +67,7 @@ class Ratelimited(APIError):
 class WillExceedRatelimit(APIError):
     """Raised when the library predicts the call will exceed the ratelimit, will abort the call by default."""
 
-    def __init__(self, response: ClientRequest, count: int):
+    def __init__(self, response: ClientResponse, count: int):
         msg = 'Performing this action will exceed the ratelimit, aborting.\n{} remaining available calls, calls to make: {}.'
         msg = msg.format(response.headers['X-RateLimit-Remaining'], count)
         super().__init__(msg)
