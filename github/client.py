@@ -190,14 +190,16 @@ class GHClient:
             @functools.wraps(func)
             async def wrapped(self: Self, *args: P.args, **kwargs: P.kwargs) -> Optional[Union[T, User, Repository]]:
                 if type == 'user':
-                    if obj := self._user_cache.get(kwargs.get('user')):
+                    obj = self._user_cache.get(kwargs.get('user'))
+                    if obj:
                         return obj
 
                     user: User = await func(self, *args, **kwargs)  # type: ignore
                     self._user_cache[kwargs.get("user")] = user
                     return user
                 if type == 'repo':
-                    if obj := self._repo_cache.get(kwargs.get('repo')):
+                    obj = self._repo_cache.get(kwargs.get('repo'))
+                    if obj:
                         return obj
 
                     repo: Repository = await func(self, *args, **kwargs)  # type: ignore
