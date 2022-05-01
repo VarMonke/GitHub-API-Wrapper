@@ -1,0 +1,6 @@
+version: 1.1.1
+
+sphinx:
+  configuration: docs/conf.py
+  fail_on_warning: false
+  builder: html

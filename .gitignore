@@ -7,7 +7,7 @@ __pycache__/
 *$py.class
 
 #var is weird
-test*.py
+test*.*
 .vscode/
 
 # C extensions
