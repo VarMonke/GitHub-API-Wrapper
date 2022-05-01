@@ -102,6 +102,12 @@ class GHClient:
         return self
 
     async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
+        try:
+            session = self.http.session
+            await self.session.close()
+        except Exception as exc:
+            raise Exception('HTTP Session doesn\'t exist') from exc
+
         if session := getattr(self.http, 'session', None):
             await session.close()
 
