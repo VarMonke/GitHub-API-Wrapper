@@ -33,18 +33,43 @@ P = ParamSpec('P')
 
 
 class GHClient:
+    """The main client, used to start most use-cases.
+    
+    Parameters
+    ----------
+    username: Optional[:class:`str`]
+        An optional username to be provided along with a token to make authenticated API calls.
+        If you provide a username, the token must be provided as well.
+    token: Optional[:class:`str`]
+        An optional token to be provided along with a username to make authenticated API calls.
+        If you provide a token, the username must be provided as well.
+    user_cache_size: Optional[:class:`int`]
+        Determines the maximum number of User objects that will be cached in memory.
+        Defaults to 30, must be between 30 and 0 inclusive.
+    repo_cache_size: Optional[:class:`int`]
+        Determines the maximum number of Repository objects that will be cached in memory.
+        Defaults to 15, must be between 30 and 0 inclusive.
+    custom_headers: Optional[:class:`dict`]
+        A way to pass custom headers into the client session that drives the client, eg. a user-agent.
+
+    Attributes
+    ----------
+    username: Optional[:class:`str`]
+        The authenticated Client's username, if applicable.
+    token: Optional[:class:`str`]
+        The authenticated Client's token, if applicable.
+    """
     has_started: bool = False
 
     def __init__(
         self,
         *,
-        username: Union[str, None] = None,
-        token: Union[str, None] = None,
+        username: Optional[str] = None,
+        token: Optional[str] = None,
         user_cache_size: int = 30,
         repo_cache_size: int = 15,
-        custom_headers: dict[str, Union[str, int]] = {},
+        custom_headers: Optional[Dict[str, Union[str, int]]] = {},
     ):
-        """The main client, used to start most use-cases."""
         self._headers = custom_headers
 
         if username and token:
@@ -92,6 +117,15 @@ class GHClient:
         ...
 
     def check_limits(self, as_dict: bool = False) -> Union[Dict[str, Union[str, int]], List[str]]:
+        """Returns the remaining number of API calls per timeframe.
+
+        Parameters
+        ----------
+        as_dict: Optional[:class:`bool`]
+            Set to True to return the remaining calls in a dictionary.
+            Set to False to return the remaining calls in a list.
+            Defaults to False
+        """
         if not self.has_started:
             raise exceptions.NotStarted
         if not as_dict:
@@ -104,7 +138,17 @@ class GHClient:
         return self.http.session._rates  # type: ignore
 
     async def update_auth(self, username: str, token: str) -> None:
-        """Allows you to input auth information after instantiating the client."""
+        """Allows you to input auth information after instantiating the client.
+        
+        Parameters
+        ----------
+        username: :class:`str`
+            The username to update the authentication to.
+            Must also be provided with the valid token.
+        token: :class:`str`
+            The token to update the authentication to.
+            Must also be providede with the valid username.
+        """
         # check if username and token is valid
         await self.http.update_auth(username=username, token=token)
         try:
@@ -113,7 +157,11 @@ class GHClient:
             raise exceptions.InvalidToken from exc
 
     async def start(self) -> Self:
-        """Main entry point to the wrapper, this creates the ClientSession."""
+        """Main entry point to the wrapper, this creates the ClientSession.
+        
+        Parameters
+        ----------
+        """
         if self.has_started:
             raise exceptions.AlreadyStarted
         if self._auth:
@@ -159,22 +207,46 @@ class GHClient:
 
     # @_cache(type='User')
     async def get_self(self) -> User:
-        """Returns the authenticated User object."""
+        """:class:`User`: Returns the authenticated User object."""
         if self._auth:
             return User(await self.http.get_self(), self.http)
         else:
             raise exceptions.NoAuthProvided
 
     async def get_user(self, *, user: str) -> User:
-        """Fetch a Github user from their username."""
+        """:class:`User`: Fetch a Github user from their username.
+        
+        Parameters
+        ----------
+        user: :class:`str`
+            The name of the user to fetch.
+        """
         return User(await self.http.get_user(user), self.http)
 
     async def get_repo(self, *, owner: str, repo: str) -> Repository:
-        """Fetch a Github repository from it's name."""
+        """:class:`Repository`: Fetch a Github repository from it's name.
+        
+        Parameters
+        ----------
+        owner: :class:`str`
+            The name of the owner of a given reposiory.
+        repo: :class:`str`
+            The name of the repository to fetch.
+        """
         return Repository(await self.http.get_repo(owner, repo), self.http)
 
     async def get_issue(self, *, owner: str, repo: str, issue: int) -> Issue:
-        """Fetch a Github Issue from it's name."""
+        """:class:`Issue`: Fetch a Github Issue from it's name.
+        
+        Parameters
+        ----------
+        owner: :class:`str`
+            The name of the owner of the repository for which the issue relates to.
+        repo: :class:`str`
+            The name of the repository to which the issue is related to.
+        issue: :class:`int`
+            The ID of the issue to fetch.
+        """
         return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http)
 
     async def create_repo(
@@ -185,35 +257,112 @@ class GHClient:
         gitignore: Optional[str] = None,
         license: Optional[str] = None,
     ) -> Repository:
+        """Creates a Repository with supplied data.
+        Requires API authentication.
+        
+        Parameters
+        ----------
+        name: :class:`str`
+            The name of the repository to be created.
+        description: :class:`str`
+            A description of the repository to be created.
+        public: :class:`bool`
+            Determines whether only the repository will be visible to the public.
+            Defaults to False (private repository).
+        gitignore: Optional[:class:`str`]
+            .gitignore template to use.
+            See https://github.com/github/gitignore for GitHub's own templates.
+            Defaults to None.
+        license: Optional[:class:`str`]
+            TODO: Document this.
+
+        Returns
+        -------
+        :class:`Repository`
+        """
         return Repository(
             await self.http.create_repo(name, description, public, gitignore, license),
             self.http,
         )
 
-    async def delete_repo(self, repo: str, owner: str) -> Optional[str]:
-        """Delete a Github repository, requires authorisation."""
-        owner = owner or self.username  # type: ignore
-        return await self.http.delete_repo(owner, repo)
+    async def delete_repo(self, repo: str) -> Optional[str]:
+        """Delete a Github repository, requires authorisation.
 
-    async def get_gist(self, gist: int) -> Gist:
-        """Fetch a Github gist from it's id."""
+        Parameters
+        ----------
+        repo: :class:`str`
+            The name of the repository to delete.
+
+        Returns
+        -------
+        Optional[:class:`str`]
+        """
+        return await self.http.delete_repo(self.username, repo)
+
+    async def get_gist(self, gist: str) -> Gist:
+        """Fetch a Github gist from it's id.
+        
+        Parameters
+        ----------
+        gist: :class:`str`
+            The id of the gist to fetch.
+
+        Returns
+        -------
+        :class:`Gist`
+        """
         return Gist(await self.http.get_gist(gist), self.http)
 
     async def create_gist(self, *, files: List[File], description: str, public: bool) -> Gist:
-        """Creates a Gist with the given files, requires authorisation."""
+        """Creates a Gist with the given files, requires authorisation.
+
+        Parameters
+        ----------
+        files: List[:class:`File`]
+            A list of File objects to upload to the gist.
+        description: :class:`str`
+            A description of the gist.
+        public: :class:`bool`
+            Determines whether the gist will be visible to the public.
+            Defaults to False (private).
+
+        Returns
+        -------
+        :class:`Gist`
+        """
         return Gist(
             await self.http.create_gist(files=files, description=description, public=public),
             self.http,
         )
 
     async def delete_gist(self, gist: int) -> Optional[str]:
-        """Delete a Github gist, requires authorisation."""
+        """Delete a Github gist, requires authorisation.
+        
+        Parameters
+        ----------
+        gist: :class:`int`
+            The ID of the gist to delete.
+
+        Returns
+        -------
+        Optional[:class:`str`]
+        """
         return await self.http.delete_gist(gist)
 
     async def get_org(self, org: str) -> Organization:
-        """Fetch a Github organization from it's name."""
+        """Fetch a Github organization from it's name.
+        
+        Parameters
+        ----------
+        org: :class:`str`
+            The name of the organization to fetch.
+            
+        Returns
+        -------
+        :class:`Organization`
+        """
         return Organization(await self.http.get_org(org), self.http)
 
     async def latency(self) -> float:
-        """Returns the latency of the client."""
+        """:class:`float`: Returns the latency of the client."""
         return await self.http.latency()

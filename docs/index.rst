@@ -6,9 +6,15 @@
 Welcome to Github-API-Wrapper's documentation!
 ==============================================
 
+.. automodule:: github
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   api
+
 
 
 

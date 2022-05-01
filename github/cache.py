@@ -18,7 +18,7 @@ class _BaseCache(Dict[K, V]):
     __slots__: Tuple[str, ...] = ('_max_size', '_lru_keys')
 
     def __init__(self, max_size: int, *args: Any) -> None:
-        self._max_size: int = max(min(max_size, 15), 0)  # bounding max_size to 15 for now
+        self._max_size: int = max(min(max_size, 30), 0)  # bounding max_size to 15 for now
         self._lru_keys: Deque[K] = deque(maxlen=self._max_size)
         super().__init__(*args)
 

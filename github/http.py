@@ -242,7 +242,7 @@ class http:
             raise MissingPermissions
         raise RepositoryNotFound
 
-    async def delete_gist(self, gist_id: int) -> Optional[str]:
+    async def delete_gist(self, gist_id: str) -> Optional[str]:
         """Deletes a Gist from the given gist id."""
         result = await self.session.delete(GIST_URL.format(gist_id))
         if result.status == 204:
@@ -258,7 +258,7 @@ class http:
             return await result.json()
         raise OrganizationNotFound
 
-    async def get_gist(self, gist_id: int) -> Dict[str, Union[str, int]]:
+    async def get_gist(self, gist_id: str) -> Dict[str, Union[str, int]]:
         """Returns a gist's raw JSON from the given gist id."""
         result = await self.session.get(GIST_URL.format(gist_id))
         if 200 <= result.status <= 299:
