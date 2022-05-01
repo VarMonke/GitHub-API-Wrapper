@@ -53,6 +53,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'alabaster'
+html_style = '/default.css'
 html_favicon = './assets/Github-Python.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,

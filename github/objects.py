@@ -1,7 +1,7 @@
 # == objects.py ==#
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, Tuple, Union, Dict
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union, Dict, List
 
 if TYPE_CHECKING:
     from .http import http
@@ -36,6 +36,7 @@ def repr_dt(_datetime: datetime) -> str:
 
 
 class APIObject:
+    """Top level class for objects created from the API"""
     __slots__: Tuple[str, ...] = ('_response', '_http')
 
     def __init__(self, response: Dict[str, Any], _http: http) -> None:
@@ -64,20 +65,38 @@ class _BaseUser(APIObject):
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} id = {self.id}, login = {self.login!r}>'
 
-    async def repos(self) -> list[Repository]:
+    async def repos(self) -> List[Repository]:
+        """List[:class:`Repository`]: Returns a list of public repositories under the user."""
         results = await self._http.get_user_repos(self)  # type: ignore
         return [Repository(data, self._http) for data in results]
 
-    async def gists(self) -> list[Gist]:
+    async def gists(self) -> List[Gist]:
+        """List[:class:`Gist`]: Returns a list of public gists under the user."""
         results = await self._http.get_user_gists(self)  # type: ignore
         return [Gist(data, self._http) for data in results]
 
-    async def orgs(self) -> list[Organization]:
+    async def orgs(self) -> List[Organization]:
+        """List[:class:`Organization`]: Returns a list of public orgs under the user."""
         results = await self._http.get_user_orgs(self)  # type: ignore
         return [Organization(data, self._http) for data in results]
 
 
 class User(_BaseUser):
+    """Representation of a user object on Github.
+    
+    Attributes
+    ----------
+    login: :class:`str`
+        The API name of the user.
+    id: :class:`int`
+        The ID of the user.
+    avatar_url: :class:`str`
+        The url of the user's Github avatar.
+    html_url: :class:`str`
+        The url of the user's Github page.
+    created_at: :class:`datetime.datetime`
+        The time of creation of the user.
+    """
     __slots__ = (
         'login',
         'id',
@@ -132,6 +151,31 @@ class PartialUser(_BaseUser):
 
 
 class Repository(APIObject):
+    """Representation of a repository on Github.
+    
+    Attributes
+    ----------
+    id: :class:`int`
+        The ID of the repository in the API.
+    name: :class:`str`
+        The name of the repository in the API.
+    owner: :class:`User`
+        The owner of the repository.
+    created_at: :class:`datetime.datetime`
+        The time the repository was created at.
+    updated_at: :class:`datetime.datetime`
+        The time the repository was last updated.
+    url: :class:`str`
+        The API url for the repository.
+    html_url: :class:`str`
+        The human-url of the repository.
+    archived: :class:`bool`
+        Whether the repository is archived or live.
+    open_issues_count: :class:`int`
+        The number of the open issues on the repository.
+    default_branch: :class:`str`
+        The name of the default branch of the repository.
+    """
     if TYPE_CHECKING:
         id: int
         name: str
@@ -187,10 +231,12 @@ class Repository(APIObject):
 
     @property
     def is_fork(self) -> bool:
+        """:class:`bool`: Whether the repository is a fork."""
         return self._response.get('fork')
 
     @property
     def language(self) -> str:
+        """:class:`str`: Primary language of the repository."""
         return self._response.get('language')
 
     @property
@@ -203,6 +249,25 @@ class Repository(APIObject):
 
 
 class Issue(APIObject):
+    """Representation of an issue on Github.
+    
+    Attributes
+    ----------
+    id: :class:`int`
+        The ID of the issue in the API.
+    title: :class:`str`
+        The title of the issue in the API.
+    user: :class:`User`
+        The user who opened the issue.
+    labels: List[:class:`str`]
+        TODO: document this.
+    state: :class:`str`
+        The current state of the issue.
+    created_at: :class:`datetime.datetime`
+        The time the issue was created.
+    closed_by: Optional[Union[:class:`PartialUser`, :class:`User`]]
+        The user the issue was closed by, if applicable.
+    """
     __slots__ = (
         'id',
         'title',
@@ -239,10 +304,12 @@ class Issue(APIObject):
 
     @property
     def updated_at(self) -> Optional[datetime]:
+        """Optional[:class:`datetime.datetime`]: The time the issue was last updated, if applicable."""
         return dt_formatter(self._response.get('updated_at'))
 
     @property
     def html_url(self) -> str:
+        """:class:`str`: The human-friendly url of the issue."""
         return self._response.get('html_url')
 
 
@@ -250,6 +317,16 @@ class Issue(APIObject):
 
 
 class File:
+    """A wrapper around files and in-memory file-like objects.
+    
+    Parameters
+    ----------
+    fp: Union[:class:`str`, :class:`io.StringIO`]
+        The filepath or StringIO representing a file to upload.
+        If providing a StringIO instance, a filename shuold also be provided to the file.
+    filename: :class:`str`
+        An override to the file's name, encouraged to provide this if using a StringIO instance.
+    """
     def __init__(self, fp: Union[str, io.StringIO], filename: str = 'DefaultFilename.txt') -> None:
         self.fp = fp
         self.filename = filename
@@ -272,6 +349,23 @@ class File:
 
 
 class Gist(APIObject):
+    """Representation of a gist on Github.
+    
+    Attributes
+    ----------
+    id: :class:`int`
+        The ID of the gist in the API.
+    html_url: :class:`str`
+        The human-friendly url of the gist.
+    files: List[:class:`File`]
+        A list of the files in the gist, can be an empty list.
+    public: :class:`bool`
+        Whether the gist is public.
+    owner: Union[:class:`PartialUser`, :class:`User`]
+        The owner of the gist.
+    created_at: :class:`datetime.datetime`
+        The time the gist was created at.
+    """
     __slots__ = (
         'id',
         'html_url',
@@ -302,18 +396,22 @@ class Gist(APIObject):
 
     @property
     def updated_at(self) -> Optional[datetime]:
+        """Optional[:class:`datetime.datetime`]: The time the gist was last updated, if applicable."""
         return dt_formatter(self._response.get('updated_at'))
 
     @property
     def comments(self) -> str:
+        """TODO: document this."""
         return self._response.get('comments')
 
     @property
     def discussion(self) -> str:
+        """TODO: document this."""
         return self._response.get('discussion')
 
     @property
     def raw(self) -> Dict[str, Any]:
+        """TODO: document this."""
         return self._response
 
 
@@ -321,6 +419,21 @@ class Gist(APIObject):
 
 
 class Organization(APIObject):
+    """Representation of an organization in the API.
+    
+    Attributes
+    ----------
+    login: :class:`str`
+        TODO: document this
+    id: :class:`int`
+        The ID of the organization in the API.
+    is_verified: :class:`bool`
+        Whether or not the organization is verified.
+    created_at: :class:`datetime.datetime`
+        The time the organization was created at.
+    avatar_url: :class:`str`
+        The url of the organization's avatar.
+    """
     __slots__ = (
         'login',
         'id',
@@ -354,8 +467,10 @@ class Organization(APIObject):
 
     @property
     def description(self):
+        """:class:`str`: The description of the organization."""
         return self._response.get('description')
 
     @property
     def html_url(self):
+        """:class:`str`: The human-friendly url of the organization."""
         return self._response.get('html_url')
