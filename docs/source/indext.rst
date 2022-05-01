@@ -1,0 +1,1 @@
+Github-API-Wrapper has its documentation hosted on Read the Docs.
