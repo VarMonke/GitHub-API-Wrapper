@@ -16,6 +16,15 @@ readme = ''
 with open('README.md') as f:
     readme = f.read()
 
+extras_require = {
+    'docs': [
+        'sphinx==4.4.0',
+        'sphinxcontrib_trio==1.1.2',
+        'sphinxcontrib-websupport',
+        'typing-extensions',
+    ],
+}
+
 setup(
     name='github',
     author='VarMonke & sudosnok',

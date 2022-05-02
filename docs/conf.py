@@ -46,7 +46,7 @@ extensions = [
 
 autodoc_member_order = 'bysource'
 autodoc_typehints = 'none'
-autodoc_mock_imports = ['sphinxcontrib_trio','sphinxcontrib-serializinghtml','sphinxcontrib-qthelp','sphinxcontrib-jsmath','sphinxcontrib-htmlhelp','sphinxcontrib-devhelp','sphinxcontrib-applehelp ','typing_extensions']
+#autodoc_mock_imports = ['sphinxcontrib_trio','sphinxcontrib-serializinghtml','sphinxcontrib-qthelp','sphinxcontrib-jsmath','sphinxcontrib-htmlhelp','sphinxcontrib-devhelp','sphinxcontrib-applehelp ','typing_extensions']
 # maybe consider this?
 # napoleon_attr_annotations = False
 
