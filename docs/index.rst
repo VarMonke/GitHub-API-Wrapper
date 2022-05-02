@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Github-API-Wrapper's documentation!
+Welcome to Github-API-Wrapper.
 ==============================================
+
+.. :: /images/snake.svg
+.. :: /images/snake_dark.svg
 
 .. automodule:: github
 
