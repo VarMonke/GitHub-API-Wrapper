@@ -6,8 +6,8 @@
 Welcome to Github-API-Wrapper.
 ==============================================
 
-.. :: /images/snake.svg
-.. :: /images/snake_dark.svg
+.. image:: /images/snake.svg
+.. image:: /images/snake_dark.svg
 
 .. automodule:: github
 
