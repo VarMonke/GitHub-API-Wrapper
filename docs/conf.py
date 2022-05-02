@@ -46,6 +46,7 @@ extensions = [
 
 autodoc_member_order = 'bysource'
 autodoc_typehints = 'none'
+autodoc_moc_imports = ['sphinxcontrib_trio','typing_extensions']
 # maybe consider this?
 # napoleon_attr_annotations = False
 
