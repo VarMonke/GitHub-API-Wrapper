@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 path = Path(__file__).parent / "github" / "__init__.py"
-version = re.search(r'\d[.]\d[.]\d',path.read_text()).group()
+version = re.search(r'\d[.]\d[.]\d',path.read_text()).group(0) #type: ignore
 
 packages = [
     'github',

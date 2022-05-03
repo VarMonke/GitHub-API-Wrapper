@@ -148,11 +148,11 @@ class PyAttributeTable(SphinxDirective):
         return [node]
 
 
-def build_lookup_table(env: BuildEnvironment) -> Dict[str, List[str]]:
+def build_lookup_table(env: Optional[BuildEnvironment]) -> Dict[str, List[str]]:
     # Given an environment, load up a lookup table of
     # full-class-name: objects
     result = {}
-    domain = env.domains['py']
+    domain = env.domains['py'] #type: ignore
 
     ignored = {
         'data',
@@ -181,7 +181,7 @@ class TableElement(NamedTuple):
 
 
 def process_attributetable(app: Sphinx, doctree: nodes.Node, fromdocname: str) -> None:
-    env = app.builder.env
+    env = app.builder.env #type: ignore
 
     lookup = build_lookup_table(env)
     for node in doctree.traverse(attributetableplaceholder):

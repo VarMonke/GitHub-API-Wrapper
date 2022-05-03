@@ -6,7 +6,7 @@ import json
 import re
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Dict, NamedTuple, Optional, Type, Tuple, Union, List
+from typing import Any, Dict, NamedTuple, Optional, Type, Tuple, Union, List
 from typing_extensions import TypeAlias
 import platform
 
@@ -219,30 +219,30 @@ class http:
         print('This shouldn\'t be reachable')
         return []
 
-    async def get_repo(self, owner: str, repo_name: str) -> Dict[str, Union[str, int]]:
+    async def get_repo(self, owner: str, repo_name: str) -> Optional[Dict[str, Union[str, int]]]:
         """Returns a Repo's raw JSON from the given owner and repo name."""
         result = await self.session.get(REPO_URL.format(owner, repo_name))
         if 200 <= result.status <= 299:
             return await result.json()
         raise RepositoryNotFound
 
-    async def get_repo_issue(self, owner: str, repo_name: str, issue_number: int) -> Dict[str, Union[str, int]]:
+    async def get_repo_issue(self, owner: str, repo_name: str, issue_number: int) -> Optional[Dict[str, Any]]:
         """Returns a single issue's JSON from the given owner and repo name."""
         result = await self.session.get(REPO_ISSUE_URL.format(owner, repo_name, issue_number))
         if 200 <= result.status <= 299:
             return await result.json()
         raise IssueNotFound
 
-    async def delete_repo(self, owner: str, repo_name: str) -> Optional[str]:
+    async def delete_repo(self, owner: Optional[str], repo_name: str) -> Optional[str]:
         """Deletes a Repo from the given owner and repo name."""
         result = await self.session.delete(REPO_URL.format(owner, repo_name))
         if 204 <= result.status <= 299:
             return 'Successfully deleted repository.'
-        if result.status == 403:
+        if result.status == 403: #type: ignore
             raise MissingPermissions
         raise RepositoryNotFound
 
-    async def delete_gist(self, gist_id: str) -> Optional[str]:
+    async def delete_gist(self, gist_id: Union[str, int]) -> Optional[str]:
         """Deletes a Gist from the given gist id."""
         result = await self.session.delete(GIST_URL.format(gist_id))
         if result.status == 204:
@@ -252,7 +252,7 @@ class http:
         raise GistNotFound
 
     async def get_org(self, org_name: str) -> Dict[str, Union[str, int]]:
-        """Returns an org's public data in JSON format."""
+        """Returns an org's public data in JSON format.""" #type: ignore
         result = await self.session.get(ORG_URL.format(org_name))
         if 200 <= result.status <= 299:
             return await result.json()

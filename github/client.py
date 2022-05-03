@@ -68,7 +68,7 @@ class GHClient:
         token: Optional[str] = None,
         user_cache_size: int = 30,
         repo_cache_size: int = 15,
-        custom_headers: Optional[Dict[str, Union[str, int]]] = {},
+        custom_headers: Dict[str, Union[str, int]] = {},
     ):
         self._headers = custom_headers
 
@@ -238,7 +238,7 @@ class GHClient:
         repo: :class:`str`
             The name of the repository to fetch.
         """
-        return Repository(await self.http.get_repo(owner, repo), self.http)
+        return Repository(await self.http.get_repo(owner, repo), self.http) #type: ignore
 
     async def get_issue(self, *, owner: str, repo: str, issue: int) -> Issue:
         """:class:`Issue`: Fetch a Github Issue from it's name.
@@ -252,7 +252,7 @@ class GHClient:
         issue: :class:`int`
             The ID of the issue to fetch.
         """
-        return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http)
+        return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http) #type: ignore #fwiw, this shouldn't error but pyright <3
 
     async def create_repo(
         self,
