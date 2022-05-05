@@ -80,6 +80,11 @@ class _BaseUser(APIObject):
         results = await self._http.get_user_orgs(self)  # type: ignore
         return [Organization(data, self._http) for data in results]
 
+    @property
+    def name(self):
+        """Optional[str]: The name of the user, if available."""
+        return self._response.get('login')
+
 
 class User(_BaseUser):
     """Representation of a user object on Github.
@@ -123,6 +128,7 @@ class User(_BaseUser):
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>'
+
 
 
 class PartialUser(_BaseUser):
