@@ -74,14 +74,14 @@ class GHClient:
 
         if username and token:
             self.username = username
-            self.token = token
-            self._auth = aiohttp.BasicAuth(username, token)
+            self.__token = token
+            self.__auth = aiohttp.BasicAuth(username, token)
         else:
-            self._auth = None
+            self.__auth = None
             self.username = None
-            self.token = None
+            self.__token = None
 
-        self.http = http(headers=custom_headers, auth=self._auth)
+        self.http = http(headers=custom_headers, auth=self.__auth)
 
         self._user_cache = ObjectCache[Any, User](user_cache_size)
         self._repo_cache = ObjectCache[Any, Repository](repo_cache_size)
@@ -109,7 +109,7 @@ class GHClient:
             raise Exception('HTTP Session doesn\'t exist') from exc
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} has_auth={bool(self._auth)}>'
+        return f'<{self.__class__.__name__} has_auth={bool(self.__auth)}>'
 
     @overload
     def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]:
@@ -167,8 +167,8 @@ class GHClient:
         """
         if self.has_started:
             raise exceptions.AlreadyStarted
-        if self._auth:
-            self.http = await http(auth=self._auth, headers=self._headers)
+        if self.__auth:
+            self.http = await http(auth=self.__auth, headers=self._headers)
             try:
                 await self.http.get_self()
             except exceptions.InvalidToken as exc:
@@ -213,7 +213,7 @@ class GHClient:
     # @_cache(type='User')
     async def get_self(self) -> User:
         """:class:`User`: Returns the authenticated User object."""
-        if self._auth:
+        if self.__auth:
             return User(await self.http.get_self(), self.http)
         else:
             raise exceptions.NoAuthProvided

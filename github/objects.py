@@ -253,6 +253,10 @@ class Repository(APIObject):
     def forks(self) -> int:
         return self._response.get('forks')
 
+    async def delete(self) -> None:
+        """Deletes the repository."""
+        return await self._http.delete_repo(self.owner.name, self.name,) #type: ignore
+
 
 class Issue(APIObject):
     """Representation of an issue on Github.

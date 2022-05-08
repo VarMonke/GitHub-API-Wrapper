@@ -93,8 +93,8 @@ class InvalidToken(ClientException):
 class InvalidAuthCombination(ClientException):
     """Raised when the username and token are both provided."""
 
-    def __init__(self):
-        msg = 'The username and token cannot be used together.'
+    def __init__(self, msg: str):
+        #msg = 'The username and token cannot be used together.'
         super().__init__(msg)
 
 
