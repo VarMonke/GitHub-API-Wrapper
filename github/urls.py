@@ -28,6 +28,10 @@ REPOS_URL = BASE_URL + '/repos/{0}'  # repos of a user
 
 REPO_URL = BASE_URL + '/repos/{0}/{1}'  # a specific repo
 
+ADD_FILE_URL = BASE_URL + '/repos/{}/{}/contents/{}'
+
+ADD_FILE_BRANCH = BASE_URL + ''
+
 REPO_ISSUE_URL = REPO_URL + '/issues/{2}'  # a specific issue
 
 # == gist urls ==#

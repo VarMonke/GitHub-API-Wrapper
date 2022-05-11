@@ -1,20 +1,24 @@
 # == http.py ==#
 
 from __future__ import annotations
+from asyncio.base_subprocess import ReadSubprocessPipeProto
+from base64 import b64encode
 
 import json
 import re
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, Dict, NamedTuple, Optional, Type, Tuple, Union, List
-from typing_extensions import TypeAlias
+from typing import Any, Dict, Literal, NamedTuple, Optional, Type, Tuple, Union, List
+from typing_extensions import TypeAlias, reveal_type
 import platform
 
 import aiohttp
 
 from .exceptions import *
 from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
-from .objects import User, Gist, Repository, File
+from .exceptions import FileAlreadyExists
+from .exceptions import ResourceAlreadyExists
+from .objects import User, Gist, Repository, File, bytes_to_b64
 from .urls import *
 from . import __version__
 
@@ -238,7 +242,7 @@ class http:
         result = await self.session.delete(REPO_URL.format(owner, repo_name))
         if 204 <= result.status <= 299:
             return 'Successfully deleted repository.'
-        if result.status == 403: #type: ignore
+        if result.status == 403:  # type: ignore
             raise MissingPermissions
         raise RepositoryNotFound
 
@@ -252,7 +256,7 @@ class http:
         raise GistNotFound
 
     async def get_org(self, org_name: str) -> Dict[str, Union[str, int]]:
-        """Returns an org's public data in JSON format.""" #type: ignore
+        """Returns an org's public data in JSON format."""  # type: ignore
         result = await self.session.get(ORG_URL.format(org_name))
         if 200 <= result.status <= 299:
             return await result.json()
@@ -300,3 +304,23 @@ class http:
         if result.status == 401:
             raise NoAuthProvided
         raise RepositoryAlreadyExists
+
+    async def add_file(self, owner: str, repo_name: str, filename: str, content: str, message: str, branch: str):
+        """Adds a file to the given repo."""
+
+        data = {
+            'content': bytes_to_b64(content=content),
+            'message': message,
+            'branch': branch,
+        }
+
+        result = await self.session.put(ADD_FILE_URL.format(owner, repo_name, filename), data=json.dumps(data))
+        if 200 <= result.status <= 299:
+            return await result.json()
+        if result.status == 401:
+            raise NoAuthProvided
+        if result.status == 409:
+            raise FileAlreadyExists
+        if result.status == 422:
+            raise FileAlreadyExists('This file exists, and can only be edited.')
+        return await result.json(), result.status

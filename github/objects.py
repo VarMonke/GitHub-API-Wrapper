@@ -1,7 +1,11 @@
 # == objects.py ==#
 from __future__ import annotations
+from base64 import b64encode
+import json
 
-from typing import TYPE_CHECKING, Any, Optional, Tuple, Union, Dict, List
+from typing import TYPE_CHECKING, Any, Literal, Optional, Tuple, Union, Dict, List
+
+import aiohttp
 
 if TYPE_CHECKING:
     from .http import http
@@ -35,8 +39,13 @@ def repr_dt(_datetime: datetime) -> str:
     return _datetime.strftime(r'%d-%m-%Y, %H:%M:%S')
 
 
+def bytes_to_b64(content) -> str:
+    return b64encode(content.encode('utf-8')).decode('ascii')
+
+
 class APIObject:
     """Top level class for objects created from the API"""
+
     __slots__: Tuple[str, ...] = ('_response', '_http')
 
     def __init__(self, response: Dict[str, Any], _http: http) -> None:
@@ -88,7 +97,7 @@ class _BaseUser(APIObject):
 
 class User(_BaseUser):
     """Representation of a user object on Github.
-    
+
     Attributes
     ----------
     login: :class:`str`
@@ -102,6 +111,7 @@ class User(_BaseUser):
     created_at: :class:`datetime.datetime`
         The time of creation of the user.
     """
+
     __slots__ = (
         'login',
         'id',
@@ -128,7 +138,6 @@ class User(_BaseUser):
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>'
-
 
 
 class PartialUser(_BaseUser):
@@ -158,7 +167,7 @@ class PartialUser(_BaseUser):
 
 class Repository(APIObject):
     """Representation of a repository on Github.
-    
+
     Attributes
     ----------
     id: :class:`int`
@@ -182,6 +191,7 @@ class Repository(APIObject):
     default_branch: :class:`str`
         The name of the default branch of the repository.
     """
+
     if TYPE_CHECKING:
         id: int
         name: str
@@ -198,7 +208,6 @@ class Repository(APIObject):
         'disabled',
         'updated_at',
         'open_issues_count',
-        'default_branch',
         'clone_url',
         'stargazers_count',
         'watchers_count',
@@ -253,14 +262,30 @@ class Repository(APIObject):
     def forks(self) -> int:
         return self._response.get('forks')
 
+    @property
+    def default_branch(self) -> str:
+        """:class:`str`: The default branch of the repository."""
+        return self._response.get('default_branch')
+
     async def delete(self) -> None:
         """Deletes the repository."""
-        return await self._http.delete_repo(self.owner.name, self.name,) #type: ignore
+        return await self._http.delete_repo(
+            self.owner.name,  # type: ignore this shit is not my fault
+            self.name,
+        )  # type: ignore
+
+    async def add_file(self, filename: str, message: str, content: str, branch: Optional[str] = None) -> None:
+        """Adds a file to the repository."""
+
+        if branch is None:
+            branch = self.default_branch
+
+        return await self._http.add_file(owner=self.owner.name, repo_name=self.name, filename=filename, content=content, message=message, branch=branch)  # type: ignore
 
 
 class Issue(APIObject):
     """Representation of an issue on Github.
-    
+
     Attributes
     ----------
     id: :class:`int`
@@ -278,6 +303,7 @@ class Issue(APIObject):
     closed_by: Optional[Union[:class:`PartialUser`, :class:`User`]]
         The user the issue was closed by, if applicable.
     """
+
     __slots__ = (
         'id',
         'title',
@@ -328,16 +354,17 @@ class Issue(APIObject):
 
 class File:
     """A wrapper around files and in-memory file-like objects.
-    
+
     Parameters
     ----------
-    fp: Union[:class:`str`, :class:`io.StringIO`]
+    fp: Union[:class:`str`, :class:`io.StringIO`, :class:`io.BytesIO`]
         The filepath or StringIO representing a file to upload.
         If providing a StringIO instance, a filename shuold also be provided to the file.
     filename: :class:`str`
         An override to the file's name, encouraged to provide this if using a StringIO instance.
     """
-    def __init__(self, fp: Union[str, io.StringIO], filename: str = 'DefaultFilename.txt') -> None:
+
+    def __init__(self, fp: Union[str, io.StringIO, io.BytesIO], filename: str = 'DefaultFilename.txt') -> None:
         self.fp = fp
         self.filename = filename
 
@@ -346,12 +373,10 @@ class File:
             if os.path.exists(self.fp):
                 with open(self.fp) as fp:
                     data = fp.read()
-
                 return data
-
             return self.fp
         elif isinstance(self.fp, io.BytesIO):
-            return self.fp.read()
+            return self.fp.read().decode('utf-8')
         elif isinstance(self.fp, io.StringIO):  # type: ignore
             return self.fp.getvalue()
 
@@ -360,7 +385,7 @@ class File:
 
 class Gist(APIObject):
     """Representation of a gist on Github.
-    
+
     Attributes
     ----------
     id: :class:`int`
@@ -376,6 +401,7 @@ class Gist(APIObject):
     created_at: :class:`datetime.datetime`
         The time the gist was created at.
     """
+
     __slots__ = (
         'id',
         'html_url',
@@ -430,7 +456,7 @@ class Gist(APIObject):
 
 class Organization(APIObject):
     """Representation of an organization in the API.
-    
+
     Attributes
     ----------
     login: :class:`str`
@@ -444,6 +470,7 @@ class Organization(APIObject):
     avatar_url: :class:`str`
         The url of the organization's avatar.
     """
+
     __slots__ = (
         'login',
         'id',

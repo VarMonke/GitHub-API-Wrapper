@@ -1,7 +1,7 @@
 # == exceptions.py ==#
 
 import datetime
-from typing import Tuple
+from typing import Optional, Tuple
 
 from aiohttp import ClientResponse
 
@@ -94,7 +94,7 @@ class InvalidAuthCombination(ClientException):
     """Raised when the username and token are both provided."""
 
     def __init__(self, msg: str):
-        #msg = 'The username and token cannot be used together.'
+        # msg = 'The username and token cannot be used together.'
         super().__init__(msg)
 
 
@@ -161,4 +161,11 @@ class GistNotFound(ResourceNotFound):
 class RepositoryAlreadyExists(ResourceAlreadyExists):
     def __init__(self):
         msg = 'The requested repository already exists.'
+        super().__init__(msg)
+
+
+class FileAlreadyExists(ResourceAlreadyExists):
+    def __init__(self, msg: Optional[str] = None):
+        if msg is None:
+            msg = 'The requested file already exists.'
         super().__init__(msg)

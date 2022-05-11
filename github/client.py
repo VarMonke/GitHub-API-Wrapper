@@ -34,7 +34,7 @@ P = ParamSpec('P')
 
 class GHClient:
     """The main client, used to start most use-cases.
-    
+
     Parameters
     ----------
     username: Optional[:class:`str`]
@@ -59,6 +59,7 @@ class GHClient:
     token: Optional[:class:`str`]
         The authenticated Client's token, if applicable.
     """
+
     has_started: bool = False
 
     def __init__(
@@ -109,7 +110,7 @@ class GHClient:
             raise Exception('HTTP Session doesn\'t exist') from exc
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} has_auth={bool(self.__auth)}>'
+        return f'<Client has_auth={bool(self.__auth)}>'
 
     @overload
     def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]:
@@ -142,7 +143,7 @@ class GHClient:
 
     async def update_auth(self, username: str, token: str) -> None:
         """Allows you to input auth information after instantiating the client.
-        
+
         Parameters
         ----------
         username: :class:`str`
@@ -161,7 +162,7 @@ class GHClient:
 
     async def start(self) -> Self:
         """Main entry point to the wrapper, this creates the ClientSession.
-        
+
         Parameters
         ----------
         """
@@ -220,7 +221,7 @@ class GHClient:
 
     async def get_user(self, *, user: str) -> User:
         """:class:`User`: Fetch a Github user from their username.
-        
+
         Parameters
         ----------
         user: :class:`str`
@@ -230,7 +231,7 @@ class GHClient:
 
     async def get_repo(self, *, owner: str, repo: str) -> Repository:
         """:class:`Repository`: Fetch a Github repository from it's name.
-        
+
         Parameters
         ----------
         owner: :class:`str`
@@ -238,11 +239,11 @@ class GHClient:
         repo: :class:`str`
             The name of the repository to fetch.
         """
-        return Repository(await self.http.get_repo(owner, repo), self.http) #type: ignore
+        return Repository(await self.http.get_repo(owner, repo), self.http)  # type: ignore
 
     async def get_issue(self, *, owner: str, repo: str, issue: int) -> Issue:
         """:class:`Issue`: Fetch a Github Issue from it's name.
-        
+
         Parameters
         ----------
         owner: :class:`str`
@@ -252,7 +253,7 @@ class GHClient:
         issue: :class:`int`
             The ID of the issue to fetch.
         """
-        return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http) #type: ignore #fwiw, this shouldn't error but pyright <3
+        return Issue(await self.http.get_repo_issue(owner, repo, issue), self.http)  # type: ignore #fwiw, this shouldn't error but pyright <3
 
     async def create_repo(
         self,
@@ -264,7 +265,7 @@ class GHClient:
     ) -> Repository:
         """Creates a Repository with supplied data.
         Requires API authentication.
-        
+
         Parameters
         ----------
         name: :class:`str`
@@ -306,7 +307,7 @@ class GHClient:
 
     async def get_gist(self, gist: str) -> Gist:
         """Fetch a Github gist from it's id.
-        
+
         Parameters
         ----------
         gist: :class:`str`
@@ -318,7 +319,9 @@ class GHClient:
         """
         return Gist(await self.http.get_gist(gist), self.http)
 
-    async def create_gist(self, *, files: List[File], description: str, public: bool) -> Gist:
+    async def create_gist(
+        self, *, files: List[File], description: str = 'Gist from Github-Api-Wrapper', public: bool = True
+    ) -> Gist:
         """Creates a Gist with the given files, requires authorisation.
 
         Parameters
@@ -342,7 +345,7 @@ class GHClient:
 
     async def delete_gist(self, gist: int) -> Optional[str]:
         """Delete a Github gist, requires authorisation.
-        
+
         Parameters
         ----------
         gist: :class:`int`
@@ -356,12 +359,12 @@ class GHClient:
 
     async def get_org(self, org: str) -> Organization:
         """Fetch a Github organization from it's name.
-        
+
         Parameters
         ----------
         org: :class:`str`
             The name of the organization to fetch.
-            
+
         Returns
         -------
         :class:`Organization`
