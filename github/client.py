@@ -26,7 +26,7 @@ from .cache import ObjectCache
 from .http import http
 from .objects import Gist, Issue, Organization, Repository, User, File
 
-__all__: Tuple[str, ...] = ('GHClient',)
+__all__: Tuple[str, ...] = ('GHClient', 'Client')
 
 T = TypeVar('T')
 P = ParamSpec('P')
@@ -40,9 +40,6 @@ class GHClient:
     username: Optional[:class:`str`]
         An optional username to be provided along with a token to make authenticated API calls.
         If you provide a username, the token must be provided as well.
-    token: Optional[:class:`str`]
-        An optional token to be provided along with a username to make authenticated API calls.
-        If you provide a token, the username must be provided as well.
     user_cache_size: Optional[:class:`int`]
         Determines the maximum number of User objects that will be cached in memory.
         Defaults to 30, must be between 30 and 0 inclusive.
@@ -141,7 +138,7 @@ class GHClient:
 
         return self.http.session._rates  # type: ignore
 
-    async def update_auth(self, username: str, token: str) -> None:
+    async def update_auth(self, *, username: str, token: str) -> None:
         """Allows you to input auth information after instantiating the client.
 
         Parameters
@@ -374,3 +371,8 @@ class GHClient:
     async def latency(self) -> float:
         """:class:`float`: Returns the latency of the client."""
         return await self.http.latency()
+
+
+class Client(GHClient):
+    pass
+

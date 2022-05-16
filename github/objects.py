@@ -256,10 +256,12 @@ class Repository(APIObject):
 
     @property
     def open_issues(self) -> int:
+        """:class:`int`: The number of open issues on the repository."""
         return self._response.get('open_issues')
 
     @property
     def forks(self) -> int:
+        """:class:`int`: The number of forks of the repository."""
         return self._response.get('forks')
 
     @property
@@ -275,7 +277,15 @@ class Repository(APIObject):
         )  # type: ignore
 
     async def add_file(self, filename: str, message: str, content: str, branch: Optional[str] = None) -> None:
-        """Adds a file to the repository."""
+        """Adds a file to the repository.
+
+        Parameters
+        ----------
+        filename: :class:`str` The name of the file.
+        message: :class:`str` The commit message.
+        content: :class:`str` The content of the file.
+        branch: :class:`str` The branch to add the file to, defaults to the default branch.
+        """
 
         if branch is None:
             branch = self.default_branch
@@ -449,6 +459,10 @@ class Gist(APIObject):
     def raw(self) -> Dict[str, Any]:
         """TODO: document this."""
         return self._response
+
+    async def delete(self):
+        """Delete the gist."""
+        await self._http.delete_gist(self.id)
 
 
 # === Organization stuff ===#
