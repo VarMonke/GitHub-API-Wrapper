@@ -283,7 +283,7 @@ class http:
         data = json.dumps(data)
         _headers = dict(self.session.headers)
         result = await self.session.post(
-            CREATE_GIST_URL, data=data, headers=_headers | {'Accept': 'application/vnd.github.v3+json'}
+            CREATE_GIST_URL, data=data, headers=_headers
         )
         if 201 == result.status:
             return await result.json()
