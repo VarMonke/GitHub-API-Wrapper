@@ -372,7 +372,10 @@ class GHClient:
         """:class:`float`: Returns the latency of the client."""
         return await self.http.latency()
 
+    async def close(self) -> None:
+        """Close the session."""
+        await self.http.session.close()
+
 
 class Client(GHClient):
     pass
-

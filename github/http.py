@@ -18,6 +18,7 @@ from .exceptions import *
 from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
 from .exceptions import FileAlreadyExists
 from .exceptions import ResourceAlreadyExists
+from .exceptions import Ratelimited
 from .objects import User, Gist, Repository, File, bytes_to_b64
 from .urls import *
 from . import __version__
@@ -45,7 +46,8 @@ async def on_req_start(
 ) -> None:
     """Before-request hook to make sure we don't overrun the ratelimit."""
     # print(repr(session), repr(ctx), repr(params))
-    pass
+    if session._rates.remaining in ('0', '1'): #type: ignore
+        raise Exception('Ratelimit exceeded')
 
 
 async def on_req_end(session: aiohttp.ClientSession, ctx: SimpleNamespace, params: aiohttp.TraceRequestEndParams) -> None:
