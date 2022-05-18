@@ -46,7 +46,7 @@ async def on_req_start(
 ) -> None:
     """Before-request hook to make sure we don't overrun the ratelimit."""
     # print(repr(session), repr(ctx), repr(params))
-    if session._rates.remaining in ('0', '1'): #type: ignore
+    if session._rates.remaining in ('0', '1'):  # type: ignore
         raise Exception('Ratelimit exceeded')
 
 
@@ -282,9 +282,7 @@ class http:
             data['files'][file.filename] = {'filename': file.filename, 'content': file.read()}  # helps editing the file
         data = json.dumps(data)
         _headers = dict(self.session.headers)
-        result = await self.session.post(
-            CREATE_GIST_URL, data=data, headers=_headers
-        )
+        result = await self.session.post(CREATE_GIST_URL, data=data, headers=_headers)
         if 201 == result.status:
             return await result.json()
         raise InvalidToken

@@ -460,6 +460,10 @@ class Gist(APIObject):
         """TODO: document this."""
         return self._response
 
+    @property
+    def url(self) -> str:
+        return self._response.get('html_url')
+
     async def delete(self):
         """Delete the gist."""
         await self._http.delete_gist(self.id)
