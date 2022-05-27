@@ -28,7 +28,7 @@ __all__: Tuple[str, ...] = (
 )
 
 
-def dt_formatter(time_str: str) -> Optional[datetime]:
+def dt_formatter(time_str: Optional[str]) -> Optional[datetime]:
     if time_str is not None:
         return datetime.strptime(time_str, r"%Y-%m-%dT%H:%M:%SZ")
 
