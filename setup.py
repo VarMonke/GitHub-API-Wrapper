@@ -2,19 +2,11 @@ import re
 from pathlib import Path
 from setuptools import setup
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
-
-path = Path(__file__).parent / "github" / "__init__.py"
-version = re.search(r'\d[.]\d[.]\d', path.read_text()).group(0)  # type: ignore
+ROOT_DIR = Path(__file__).parent
 
 packages = [
     'github',
 ]
-
-readme = ''
-with open('README.rst') as f:
-    readme = f.read()
 
 extras_require = {
     'docs': [
@@ -29,11 +21,11 @@ setup(
     name='github',
     author='VarMonke & sudosnok',
     url='https://github.com/VarMonke/Github-Api-Wrapper',
-    version=version,
+    version=re.search(r'\d[.]\d[.]\d', (ROOT_DIR / "github" / "__init__.py").read_text())[0],
     packages=packages,
     license='MIT',
     description='An asynchronous python wrapper around the GitHub API',
-    long_description=readme,
-    install_requires=requirements,
+    long_description=(ROOT_DIR / "README.rst").read_text(),
+    install_requires=(ROOT_DIR / "requirements.txt").read_text().splitlines(),
     python_requires='>=3.8.0',
 )
