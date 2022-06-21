@@ -1,4 +1,4 @@
-name: PyLint
+name: Bandit
 
 on: [ pull_request, push ]
 
@@ -19,8 +19,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install PyLint
-        run: pip install -U pip pylint
+      - name: Install Bandit
+        run: pip install -U pip bandit
 
-      - name: Run PyLint
-        run: pylint $(git ls-files '*.py')
+      - name: Run Bandit
+        run: bandit --recursive ./

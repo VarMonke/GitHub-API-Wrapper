@@ -65,7 +65,7 @@ class Ratelimited(APIError):
 
     def __init__(self, reset_time: datetime.datetime):
         formatted = reset_time.strftime(r"%H:%M:%S %A, %d %b")
-        msg = "We're being ratelimited, wait until {}.\nAuthentication raises the ratelimit.".format(formatted)
+        msg = f"We're being ratelimited, wait until {formatted}.\nAuthentication raises the ratelimit."
         super().__init__(msg)
 
 

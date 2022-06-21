@@ -1,18 +1,15 @@
 # == objects.py ==#
 from __future__ import annotations
+
 from base64 import b64encode
-import json
-
-from typing import TYPE_CHECKING, Any, Literal, Optional, Tuple, Union, Dict, List
-
-import aiohttp
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 if TYPE_CHECKING:
     from .http import http
 
-from datetime import datetime
 import io
 import os
+from datetime import datetime
 
 __all__: Tuple[str, ...] = (
     'APIObject',
@@ -201,7 +198,7 @@ class Repository(APIObject):
         'id',
         'name',
         'owner',
-        'size' 'created_at',
+        'sizecreated_at',
         'url',
         'html_url',
         'archived',
@@ -346,7 +343,10 @@ class Issue(APIObject):
                 continue
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} id: {self.id}, title: {self.title}, user: {self.user}, created_at: {self.created_at}, state: {self.state}>'
+        return (
+            f'<{self.__class__.__name__} id: {self.id}, title: {self.title}, user: {self.user}, created_at:'
+            f' {self.created_at}, state: {self.state}>'
+        )
 
     @property
     def updated_at(self) -> Optional[datetime]:
@@ -518,7 +518,10 @@ class Organization(APIObject):
                 continue
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, is_verified: {self.is_verified}, public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+        return (
+            f'<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, is_verified: {self.is_verified},'
+            f' public_repos: {self.public_repos}, public_gists: {self.public_gists}, created_at: {self.created_at}>'
+        )
 
     @property
     def description(self):
