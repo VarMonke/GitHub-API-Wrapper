@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+
 from setuptools import setup
 
 ROOT_DIR = Path(__file__).parent

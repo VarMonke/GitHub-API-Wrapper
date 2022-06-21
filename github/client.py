@@ -2,29 +2,29 @@
 from __future__ import annotations
 
 import functools
-import aiohttp
-
 from typing import (
+    Any,
     Awaitable,
     Callable,
-    Literal,
-    Any,
     Coroutine,
     Dict,
     Generator,
+    List,
+    Literal,
     Optional,
     Tuple,
-    Union,
-    List,
-    overload,
     TypeVar,
+    Union,
+    overload,
 )
-from typing_extensions import Self, ParamSpec, Concatenate
+
+import aiohttp
+from typing_extensions import Concatenate, ParamSpec, Self
 
 from . import exceptions
 from .cache import ObjectCache
 from .http import http
-from .objects import Gist, Issue, Organization, Repository, User, File
+from .objects import File, Gist, Issue, Organization, Repository, User
 
 __all__: Tuple[str, ...] = ('GHClient', 'Client')
 

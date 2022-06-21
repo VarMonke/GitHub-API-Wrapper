@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Any, Deque, Tuple, TypeVar, Dict
+from typing import Any, Deque, Dict, Tuple, TypeVar
 
 __all__: Tuple[str, ...] = ('ObjectCache',)
 
