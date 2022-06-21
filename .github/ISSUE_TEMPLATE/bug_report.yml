@@ -1,3 +1,5 @@
+# Credits to most of this template go to Rapptz (https://github.com/Rapptz)
+# as this was taken from the discord.py repository (https://github.com/Rapptz/discord.py/blob/868476c99963e72aa529ed6203f86ef529a2c1f1/.github/ISSUE_TEMPLATE/bug_report.yml)
 name: Bug Report
 
 description: Report broken or incorrect behaviour
