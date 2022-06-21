@@ -1,27 +1,21 @@
 # == http.py ==#
 
 from __future__ import annotations
-from asyncio.base_subprocess import ReadSubprocessPipeProto
-from base64 import b64encode
 
 import json
+import platform
 import re
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, Dict, Literal, NamedTuple, Optional, Type, Tuple, Union, List
-from typing_extensions import TypeAlias, reveal_type
-import platform
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, Union
 
 import aiohttp
+from typing_extensions import TypeAlias
 
-from .exceptions import *
-from .exceptions import GistNotFound, RepositoryAlreadyExists, MissingPermissions
-from .exceptions import FileAlreadyExists
-from .exceptions import ResourceAlreadyExists
-from .exceptions import Ratelimited
-from .objects import User, Gist, Repository, File, bytes_to_b64
-from .urls import *
 from . import __version__
+from .exceptions import *
+from .objects import File, Gist, Repository, User, bytes_to_b64
+from .urls import *
 
 __all__: Tuple[str, ...] = (
     'Paginator',
@@ -73,9 +67,10 @@ APIType: TypeAlias = Union[User, Gist, Repository]
 async def make_session(*, headers: Dict[str, str], authorization: Union[aiohttp.BasicAuth, None]) -> aiohttp.ClientSession:
     """This makes the ClientSession, attaching the trace config and ensuring a UA header is present."""
     if not headers.get('User-Agent'):
-        headers[
-            'User-Agent'
-        ] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python {platform.python_version()} aiohttp {aiohttp.__version__}'
+        headers['User-Agent'] = (
+            f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python'
+            f' {platform.python_version()} aiohttp {aiohttp.__version__}'
+        )
 
     session = aiohttp.ClientSession(auth=authorization, headers=headers, trace_configs=[trace_config])
     session._rates = Rates('', '', '', '', '')
@@ -140,9 +135,10 @@ class Paginator:
 class http:
     def __init__(self, headers: Dict[str, Union[str, int]], auth: Union[aiohttp.BasicAuth, None]) -> None:
         if not headers.get('User-Agent'):
-            headers[
-                'User-Agent'
-            ] = f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python/{platform.python_version()} aiohttp/{aiohttp.__version__}'
+            headers['User-Agent'] = (
+                'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @'
+                f' {__version__} Python/{platform.python_version()} aiohttp/{aiohttp.__version__}'
+            )
 
         self._rates = Rates('', '', '', '', '')
         self.headers = headers
