@@ -1,0 +1,47 @@
+name: Lint
+
+on: [ pull_request, push ]
+
+jobs:
+  build:
+    if: github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Unimport, Isort, Black, and Flynt
+        run: pip install -U pip unimport isort black flynt
+
+      - name: Run Unimport
+        continue-on-error: true
+        run: unimport ./ --ignore-init --gitignore -r
+
+      - name: Run Isort
+        run: isort ./
+
+      - name: Run Black
+        run: black ./
+
+      - name: Run Flynt
+        run: flynt ./ -tc
+
+      - name: Setup Git
+        run: git config user.name "Automated Linter"
+
+      - name: Push To GitHub
+        continue-on-error: true
+        run: |
+          git pull
+          git add ./
+          git commit --reuse-message=HEAD
+          git push

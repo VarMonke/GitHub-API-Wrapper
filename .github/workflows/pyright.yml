@@ -1,4 +1,4 @@
-name: PyLint
+name: PyRight
 
 on: [ pull_request, push ]
 
@@ -19,8 +19,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install PyLint
-        run: pip install -U pip pylint
+      - name: Install PyRight & Dependencies
+        run: |
+          pip install -U pip pyright
+          pip install -Ur requirements.txt
 
-      - name: Run PyLint
-        run: pylint $(git ls-files '*.py')
+      - name: Run PyRight
+        run: pyright ./
