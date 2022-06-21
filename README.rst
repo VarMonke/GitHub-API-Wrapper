@@ -16,16 +16,16 @@ Key Features
 Installing
 ----------
 
-**Python 3.8 or higher**
+**Python 3.8 or higher is required to run the library**
 
-To install the library, run the following command
+To install the library, run the following command:
 
 .. code:: sh
 
-  #Linux/macOS
+  # On Linux or MacOS
   python3 -m pip install -U git+https://github.com/VarMonke/Github-Api-Wrapper
   
-  #Windows
+  # On Windows
   py -m pip install -U git+https://github.com/VarMonke/Github-Api-Wrapper
   
 Quick Example
@@ -38,18 +38,21 @@ Quick Example
   
   async def main():
     client = await github.GHClient()
-    return await client.get_user(user='GithubPythonBot')
 
-  user = asyncio.run(main())
-  print(user)
-  print(user.html_url)
+    user = await client.get_user(user='GithubPythonBot')
+
+    print(user)
+    print(user.html_url)
+
+  asyncio.run(main())
 
 .. code:: sh
-  #Output
+  # Output
   <User login: 'GithubPythonBot', id: 104489846, created_at: 2022-04-27 07:31:26>
   https://github.com/GithubPythonBot
 
   
 Links
 -----
-`Discord Server <https://discord.gg/DWhwsQ5TsT>`_
+- `Discord Server <https://discord.gg/DWhwsQ5TsT>`_
+- `GitHub API Documentation <https://docs.github.com/en/rest>`_
