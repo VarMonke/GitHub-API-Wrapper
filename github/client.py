@@ -53,7 +53,7 @@ class GHClient:
     ----------
     username: Optional[:class:`str`]
         The authenticated Client's username, if applicable.
-    token: Optional[:class:`str`]
+    __token: Optional[:class:`str`]
         The authenticated Client's token, if applicable.
     """
 
