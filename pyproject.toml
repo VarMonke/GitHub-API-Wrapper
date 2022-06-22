@@ -1,14 +1,15 @@
 [tool.black]
 line-length = 125
-skip-string-normalization = true
 preview = true  # better formatting basically
 
 [tool.isort]
+py_version = 38
 line_length = 125
 combine_as_imports = true
 combine_star = true
 
 [tool.pyright]
+pythonVersion = "3.8"
 typeCheckingMode = "basic"
 strictListInference = true
 strictDictionaryInference = true
