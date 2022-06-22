@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import timezone
+from .utils import human_readable_time_until
 from typing import TYPE_CHECKING
-from datetime import datetime
+from datetime import datetime, timezone
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
@@ -20,7 +20,7 @@ class HTTPError(BaseHTTPError):
     def __new__(cls, response: ClientResponse, /) -> HTTPError:
 
         # TODO: make custom error classes
-        return cls(response)
+        return cls.__init__(cls, response)
 
     def __init__(self, response: ClientResponse, /) -> None:
         self.method = response.method
@@ -41,4 +41,4 @@ class RatelimitReached(GitHubError):
         self.reset_time = reset_time
 
     def __str__(self) -> str:
-        return f"The ratelimit has been reached. You can try again in {self.reset_time.strftime('%H:M:%S')}"
+        return f"The ratelimit has been reached. You can try again in {human_readable_time_until(datetime.now(timezone.utc) - self.reset_time)}"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import platform
+from .utils import human_readable_time_until
 import re
 import time
 from datetime import datetime, timezone
@@ -127,7 +128,7 @@ class HTTPClient:
         async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
             if (remaining := self._rates.remaining) and int(remaining) < 2:
                 dt = self._rates.reset_time
-                log.info(f"Ratelimit exceeded, trying again at {dt.strftime('%H:%M:%S')} (URL: {params.url}, method: {params.method})")
+                log.info(f"Ratelimit exceeded, trying again in {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url}, method: {params.method})")
                 now = dt.now(timezone.utc)
 
                 await asyncio.sleep(max((dt - now).total_seconds(), 0))
