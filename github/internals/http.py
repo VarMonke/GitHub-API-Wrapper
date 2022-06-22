@@ -3,13 +3,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import platform
-import re
 import time
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, NamedTuple, Optional, Tuple, Union, Awaitable
 
 from aiohttp import BasicAuth, ClientSession, TraceConfig
-from multidict import CIMultiDict
 
 from github.utils import human_readable_time_until
 
@@ -40,27 +38,73 @@ class Ratelimit(NamedTuple):
 class HTTPClient:
     __session: Optional[ClientSession]
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         headers: Optional[Dict[str, Union[str, int]]] = None,
         auth: Optional[BasicAuth] = None,
-    ) -> None:
-        if not headers:
-            headers = {}
+    ) -> Awaitable[HTTPClient]:
+        async def initialize() -> HTTPClient:
+            self = super(HTTPClient, cls).__new__(cls)
 
-        headers.setdefault(
-            "User-Agent",
-            "Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
-            f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
-        )
+            nonlocal headers
+            if not headers:
+                headers = {}
 
-        self._rates = Ratelimit(None, None, None, None, None)
-        self.__headers = headers
-        self.__auth = auth
+            headers.setdefault(
+                "User-Agent",
+                "Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
+                f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
+            )
 
-        self._last_ping = 0
-        self._latency = 0
+            self._rates = Ratelimit(None, None, None, None, None)
+            self.__headers = headers
+            self.__auth = auth
+
+            self._last_ping = 0
+            self._latency = 0
+
+            trace_config = TraceConfig()
+
+            @trace_config.on_request_start.append
+            async def on_request_start(session: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
+                if (remaining := session._rates.remaining) and int(remaining) < 2:  # type: ignore
+                    dt = self._rates.reset_time
+                    log.info(
+                        "Ratelimit exceeded, trying again in"
+                        f" {human_readable_time_until(datetime.now(timezone.utc) - session._rates.reset_time)} (URL: {params.url},"  # type: ignore
+                        f" method: {params.method})"
+                    )
+                    # FIXME: probably broken
+                    now = datetime.now(timezone.utc)
+
+                    await asyncio.sleep(max((dt - now).total_seconds(), 0))
+
+            @trace_config.on_request_end.append
+            async def on_request_end(session: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
+                """After-request hook to adjust remaining requests on this time frame."""
+                headers = params.response.headers
+
+                session._rates = Ratelimit(
+                    headers["X-RateLimit-Remaining"],
+                    headers["X-RateLimit-Used"],
+                    headers["X-RateLimit-Limit"],
+                    datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
+                    datetime.now(timezone.utc),
+                )
+
+            self.__session = ClientSession(
+                headers=self.__headers,
+                auth=self.__auth,
+                trace_configs=[trace_config],
+            )
+
+            if not hasattr(self.__session, "_rates"):
+                self.__session._rates = self._rates
+
+            return self
+
+        return initialize()
 
     async def __aenter__(self) -> Self:
         return self
@@ -68,64 +112,10 @@ class HTTPClient:
     async def __aexit__(self, *_) -> None:
         await self.__session.close()
 
-    async def init(self) -> Self:
-        trace_config = TraceConfig()
-
-        async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-            if (remaining := self._rates.remaining) and int(remaining) < 2:
-                dt = self._rates.reset_time
-                log.info(
-                    "Ratelimit exceeded, trying again in"
-                    f" {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url},"
-                    f" method: {params.method})"
-                )
-                # FIXME: probably broken
-                now = datetime.now(timezone.utc)
-
-                await asyncio.sleep(max((dt - now).total_seconds(), 0))
-
-        trace_config.on_request_start.append(on_request_start)
-
-        async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-            """After-request hook to adjust remaining requests on this time frame."""
-            headers = params.response.headers
-
-            self._rates = Ratelimit(
-                headers["X-RateLimit-Remaining"],
-                headers["X-RateLimit-Used"],
-                headers["X-RateLimit-Limit"],
-                datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
-                datetime.now(timezone.utc),
-            )
-
-        trace_config.on_request_end.append(on_request_end)
-
-        self.__session = ClientSession(
-            headers=self.__headers,
-            auth=self.__auth,
-            trace_configs=[trace_config],
-        )
-
-        if not hasattr(self.__session, "_rates"):
-            self.__session._rates = self._rates
-
-        return self
-
-    def __await__(self):
-        return await self.init()
-
     def data(self):
+        # TODO: is this needed?
         # Returns session headers and auth.
         return {"headers": dict(self.__session.headers), "auth": self.__auth}
-
-    @property
-    def initialized(self) -> bool:
-        try:
-            session = self.__session
-        except AttributeError:
-            session = None
-        finally:
-            return bool(session)
 
     async def latency(self) -> float:
         last_ping = self._last_ping
@@ -139,8 +129,9 @@ class HTTPClient:
         return self._latency
 
     async def _request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
-        if not self.initialized:
-            raise ValueError("Client isnt started. Call HTTPClient.start before making HTTP requests.")
+        initialized = getattr(self, "_HTTPClient__session", False)
+        if not initialized:
+            raise ValueError("Client isnt initialized yet. Await the class before making HTTP requests.")
 
         async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
             if 200 <= request.status <= 299:
