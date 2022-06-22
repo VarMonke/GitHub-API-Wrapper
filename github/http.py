@@ -5,16 +5,16 @@ from __future__ import annotations
 import platform
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from types import SimpleNamespace
-from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union, Any
 
 from aiohttp import ClientSession, BasicAuth, TraceRequestEndParams, TraceConfig
 from multidict import CIMultiDict
 from typing_extensions import Self
 
 from . import __version__
-from .errors import HTTPError
+from .errors import HTTPError, RatelimitReached
 from .types import SecurtiyAndAnalysis
 
 __all__: Tuple[str, ...] = (
@@ -26,15 +26,15 @@ __all__: Tuple[str, ...] = (
 LINK_REGEX = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
 
 
-class Ratelimits(NamedTuple):
+class Ratelimit(NamedTuple):
     remaining: Optional[str]
     used: Optional[str]
     total: Optional[str]
-    reset_when: Optional[datetime]
+    reset_time: Optional[datetime]
     last_request: Optional[datetime]
 
 
-# willredesign later
+# will redesign later
 """class HTTPPaginator:
     def __init__(self, *, session: ClientSession, response: ClientResponse, type: Literal["user", "gist", "repo"]):
         self.__session = session
@@ -101,7 +101,7 @@ class HTTPClient:
             f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
         )
 
-        self._rates = Ratelimits(None, None, None, None, None)
+        self._rates = Ratelimit(None, None, None, None, None)
         self.__headers = headers
         self.__auth = auth
 
@@ -111,23 +111,23 @@ class HTTPClient:
     async def start(self) -> Self:
         trace_config = TraceConfig()
 
-        async def on_request_start(*_) -> None:
-            if self._rates.remaining in ("0", "1"):
-                raise Exception("Ratelimit exceeded")  # TODO: raise RatelimitReached error or something.
+        async def on_request_start(*_: Any) -> None:
+            if int(self._rates.remaining) < 2:
+                raise RatelimitReached(self._rates.reset_time)
         trace_config.on_request_start.append(on_request_start)
 
         async def on_request_end(
-            session: ClientSession, _: SimpleNamespace, params: TraceRequestEndParams
+            _: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams
         ) -> None:
             """After-request hook to adjust remaining requests on this time frame."""
             headers = params.response.headers
 
-            session._rates = Ratelimits(
+            self._rates = Ratelimit(
                 headers["X-RateLimit-Remaining"],
                 headers["X-RateLimit-Used"],
                 headers["X-RateLimit-Limit"],
                 datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
             )
         trace_config.on_request_start.append(on_request_end)
 
