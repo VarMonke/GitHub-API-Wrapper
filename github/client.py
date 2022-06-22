@@ -26,10 +26,10 @@ from .cache import ObjectCache
 from .http import http
 from .objects import File, Gist, Issue, Organization, Repository, User
 
-__all__: Tuple[str, ...] = ('GHClient', 'Client')
+__all__: Tuple[str, ...] = ("GHClient", "Client")
 
-T = TypeVar('T')
-P = ParamSpec('P')
+T = TypeVar("T")
+P = ParamSpec("P")
 
 
 class GHClient:
@@ -85,9 +85,9 @@ class GHClient:
         self._repo_cache = ObjectCache[Any, Repository](repo_cache_size)
 
         # Cache manegent
-        self._cache(type='user')(self.get_self)  # type: ignore
-        self._cache(type='user')(self.get_user)  # type: ignore
-        self._cache(type='repo')(self.get_repo)  # type: ignore
+        self._cache(type="user")(self.get_self)  # type: ignore
+        self._cache(type="user")(self.get_user)  # type: ignore
+        self._cache(type="repo")(self.get_repo)  # type: ignore
 
     def __call__(self, *args: Any, **kwargs: Any) -> Coroutine[Any, Any, Self]:
         return self.start(*args, **kwargs)
@@ -104,10 +104,10 @@ class GHClient:
             session = self.http.session
             await session.close()
         except Exception as exc:
-            raise Exception('HTTP Session doesn\'t exist') from exc
+            raise Exception("HTTP Session doesn't exist") from exc
 
     def __repr__(self) -> str:
-        return f'<Client has_auth={bool(self.__auth)}>'
+        return f"<Client has_auth={bool(self.__auth)}>"
 
     @overload
     def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]:
@@ -187,21 +187,21 @@ class GHClient:
         ) -> Callable[Concatenate[Self, P], Awaitable[Optional[Union[T, User, Repository]]]]:
             @functools.wraps(func)
             async def wrapped(self: Self, *args: P.args, **kwargs: P.kwargs) -> Optional[Union[T, User, Repository]]:
-                if type == 'user':
-                    obj = self._user_cache.get(kwargs.get('user'))
+                if type == "user":
+                    obj = self._user_cache.get(kwargs.get("user"))
                     if obj:
                         return obj
 
                     user: User = await func(self, *args, **kwargs)  # type: ignore
                     self._user_cache[kwargs.get("user")] = user
                     return user
-                if type == 'repo':
-                    obj = self._repo_cache.get(kwargs.get('repo'))
+                if type == "repo":
+                    obj = self._repo_cache.get(kwargs.get("repo"))
                     if obj:
                         return obj
 
                     repo: Repository = await func(self, *args, **kwargs)  # type: ignore
-                    self._repo_cache[kwargs.get('repo')] = repo
+                    self._repo_cache[kwargs.get("repo")] = repo
                     return repo
 
             return wrapped
@@ -255,7 +255,7 @@ class GHClient:
     async def create_repo(
         self,
         name: str,
-        description: str = 'Repository created using Github-Api-Wrapper.',
+        description: str = "Repository created using Github-Api-Wrapper.",
         public: bool = False,
         gitignore: Optional[str] = None,
         license: Optional[str] = None,
@@ -317,7 +317,7 @@ class GHClient:
         return Gist(await self.http.get_gist(gist), self.http)
 
     async def create_gist(
-        self, *, files: List[File], description: str = 'Gist from Github-Api-Wrapper', public: bool = True
+        self, *, files: List[File], description: str = "Gist from Github-Api-Wrapper", public: bool = True
     ) -> Gist:
         """Creates a Gist with the given files, requires authorisation.
 

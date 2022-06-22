@@ -1,12 +1,12 @@
 # == urls.py ==#
 
-BASE_URL = 'https://api.github.com'
+BASE_URL = "https://api.github.com"
 
 
 # == user urls ==#
 USERS_URL = f"{BASE_URL}/users/{{0}}"
 
-USER_HTML_URL = 'https://github.com/users/{0}'
+USER_HTML_URL = "https://github.com/users/{0}"
 
 SELF_URL = f"{BASE_URL}/user"
 

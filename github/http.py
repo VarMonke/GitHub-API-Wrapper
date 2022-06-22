@@ -18,8 +18,8 @@ from .objects import File, Gist, Repository, User, bytes_to_b64
 from .urls import *
 
 __all__: Tuple[str, ...] = (
-    'Paginator',
-    'http',
+    "Paginator",
+    "http",
 )
 
 
@@ -40,18 +40,18 @@ async def on_req_start(
 ) -> None:
     """Before-request hook to make sure we don't overrun the ratelimit."""
     # print(repr(session), repr(ctx), repr(params))
-    if session._rates.remaining in ('0', '1'):  # type: ignore
-        raise Exception('Ratelimit exceeded')
+    if session._rates.remaining in ("0", "1"):  # type: ignore
+        raise Exception("Ratelimit exceeded")
 
 
 async def on_req_end(session: aiohttp.ClientSession, ctx: SimpleNamespace, params: aiohttp.TraceRequestEndParams) -> None:
     """After-request hook to adjust remaining requests on this time frame."""
     headers = params.response.headers
 
-    remaining = headers['X-RateLimit-Remaining']
-    used = headers['X-RateLimit-Used']
-    total = headers['X-RateLimit-Limit']
-    reset_when = datetime.fromtimestamp(int(headers['X-RateLimit-Reset']))
+    remaining = headers["X-RateLimit-Remaining"]
+    used = headers["X-RateLimit-Used"]
+    total = headers["X-RateLimit-Limit"]
+    reset_when = datetime.fromtimestamp(int(headers["X-RateLimit-Reset"]))
     last_req = datetime.utcnow()
 
     session._rates = Rates(remaining, used, total, reset_when, last_req)
@@ -66,14 +66,14 @@ APIType: TypeAlias = Union[User, Gist, Repository]
 
 async def make_session(*, headers: Dict[str, str], authorization: Union[aiohttp.BasicAuth, None]) -> aiohttp.ClientSession:
     """This makes the ClientSession, attaching the trace config and ensuring a UA header is present."""
-    if not headers.get('User-Agent'):
-        headers['User-Agent'] = (
-            f'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python'
-            f' {platform.python_version()} aiohttp {aiohttp.__version__}'
+    if not headers.get("User-Agent"):
+        headers["User-Agent"] = (
+            f"Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python"
+            f" {platform.python_version()} aiohttp {aiohttp.__version__}"
         )
 
     session = aiohttp.ClientSession(auth=authorization, headers=headers, trace_configs=[trace_config])
-    session._rates = Rates('', '', '', '', '')
+    session._rates = Rates("", "", "", "", "")
     return session
 
 
@@ -84,11 +84,11 @@ class Paginator:
     def __init__(self, session: aiohttp.ClientSession, response: aiohttp.ClientResponse, target_type: str):
         self.session = session
         self.response = response
-        self.should_paginate = bool(self.response.headers.get('Link', False))
+        self.should_paginate = bool(self.response.headers.get("Link", False))
         types: Dict[str, Type[APIType]] = {  # note: the type checker doesnt see subclasses like that
-            'user': User,
-            'gist': Gist,
-            'repo': Repository,
+            "user": User,
+            "gist": Gist,
+            "repo": Repository,
         }
         self.target_type: Type[APIType] = types[target_type]
         self.pages = {}
@@ -120,10 +120,10 @@ class Paginator:
 
     def parse_header(self, response: aiohttp.ClientResponse) -> None:
         """Predicts wether a call will exceed the ratelimit ahead of the call."""
-        header = response.headers['Link']
+        header = response.headers["Link"]
         groups = LINK_PARSING_RE.findall(header)
         self.max_page = int(groups[1][1])
-        if int(response.headers['X-RateLimit-Remaining']) < self.max_page:
+        if int(response.headers["X-RateLimit-Remaining"]) < self.max_page:
             raise WillExceedRatelimit(response, self.max_page)
         self.bare_link = groups[0][0][:-1]
 
@@ -134,13 +134,13 @@ class Paginator:
 
 class http:
     def __init__(self, headers: Dict[str, Union[str, int]], auth: Union[aiohttp.BasicAuth, None]) -> None:
-        if not headers.get('User-Agent'):
-            headers['User-Agent'] = (
-                'Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @'
-                f' {__version__} Python/{platform.python_version()} aiohttp/{aiohttp.__version__}'
+        if not headers.get("User-Agent"):
+            headers["User-Agent"] = (
+                "Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
+                f" {__version__} Python/{platform.python_version()} aiohttp/{aiohttp.__version__}"
             )
 
-        self._rates = Rates('', '', '', '', '')
+        self._rates = Rates("", "", "", "", "")
         self.headers = headers
         self.auth = auth
 
@@ -154,7 +154,7 @@ class http:
             trace_configs=[trace_config],
         )
         if not hasattr(self.session, "_rates"):
-            self.session._rates = Rates('', '', '', '', '')
+            self.session._rates = Rates("", "", "", "", "")
         return self
 
     def update_headers(self, *, flush: bool = False, new_headers: Dict[str, Union[str, int]]):
@@ -175,7 +175,7 @@ class http:
     def data(self):
         # return session headers and auth
         headers = {**self.session.headers}
-        return {'headers': headers, 'auth': self.auth}
+        return {"headers": headers, "auth": self.auth}
 
     async def latency(self):
         """Returns the latency of the current session."""
@@ -202,7 +202,7 @@ class http:
         if 200 <= result.status <= 299:
             return await result.json()
 
-        print('This shouldn\'t be reachable')
+        print("This shouldn't be reachable")
         return []
 
     async def get_user_gists(self, _user: User) -> List[Dict[str, Union[str, int]]]:
@@ -210,7 +210,7 @@ class http:
         if 200 <= result.status <= 299:
             return await result.json()
 
-        print('This shouldn\'t be reachable')
+        print("This shouldn't be reachable")
         return []
 
     async def get_user_orgs(self, _user: User) -> List[Dict[str, Union[str, int]]]:
@@ -218,7 +218,7 @@ class http:
         if 200 <= result.status <= 299:
             return await result.json()
 
-        print('This shouldn\'t be reachable')
+        print("This shouldn't be reachable")
         return []
 
     async def get_repo(self, owner: str, repo_name: str) -> Optional[Dict[str, Union[str, int]]]:
@@ -239,7 +239,7 @@ class http:
         """Deletes a Repo from the given owner and repo name."""
         result = await self.session.delete(REPO_URL.format(owner, repo_name))
         if 204 <= result.status <= 299:
-            return 'Successfully deleted repository.'
+            return "Successfully deleted repository."
         if result.status == 403:  # type: ignore
             raise MissingPermissions
         raise RepositoryNotFound
@@ -248,7 +248,7 @@ class http:
         """Deletes a Gist from the given gist id."""
         result = await self.session.delete(GIST_URL.format(gist_id))
         if result.status == 204:
-            return 'Successfully deleted gist.'
+            return "Successfully deleted gist."
         if result.status == 403:
             raise MissingPermissions
         raise GistNotFound
@@ -268,14 +268,14 @@ class http:
         raise GistNotFound
 
     async def create_gist(
-        self, *, files: List['File'] = [], description: str = 'Default description', public: bool = False
+        self, *, files: List["File"] = [], description: str = "Default description", public: bool = False
     ) -> Dict[str, Union[str, int]]:
         data = {}
-        data['description'] = description
-        data['public'] = public
-        data['files'] = {}
+        data["description"] = description
+        data["public"] = public
+        data["files"] = {}
         for file in files:
-            data['files'][file.filename] = {'filename': file.filename, 'content': file.read()}  # helps editing the file
+            data["files"][file.filename] = {"filename": file.filename, "content": file.read()}  # helps editing the file
         data = json.dumps(data)
         _headers = dict(self.session.headers)
         result = await self.session.post(CREATE_GIST_URL, data=data, headers=_headers)
@@ -288,11 +288,11 @@ class http:
     ) -> Dict[str, Union[str, int]]:
         """Creates a repo for you with given data"""
         data = {
-            'name': name,
-            'description': description,
-            'public': public,
-            'gitignore_template': gitignore,
-            'license': license,
+            "name": name,
+            "description": description,
+            "public": public,
+            "gitignore_template": gitignore,
+            "license": license,
         }
         result = await self.session.post(CREATE_REPO_URL, data=json.dumps(data))
         if 200 <= result.status <= 299:
@@ -305,9 +305,9 @@ class http:
         """Adds a file to the given repo."""
 
         data = {
-            'content': bytes_to_b64(content=content),
-            'message': message,
-            'branch': branch,
+            "content": bytes_to_b64(content=content),
+            "message": message,
+            "branch": branch,
         }
 
         result = await self.session.put(ADD_FILE_URL.format(owner, repo_name, filename), data=json.dumps(data))
@@ -318,5 +318,5 @@ class http:
         if result.status == 409:
             raise FileAlreadyExists
         if result.status == 422:
-            raise FileAlreadyExists('This file exists, and can only be edited.')
+            raise FileAlreadyExists("This file exists, and can only be edited.")
         return await result.json(), result.status
