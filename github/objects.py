@@ -38,9 +38,6 @@ def bytes_to_b64(content) -> str:
     return b64encode(content.encode("utf-8")).decode("ascii")
 
 
-
-
-
 # === User stuff ===#
 
 
