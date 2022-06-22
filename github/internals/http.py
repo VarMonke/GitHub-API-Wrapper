@@ -127,29 +127,6 @@ class HTTPClient:
         finally:
             return bool(session)
 
-    @property
-    def headers(self) -> Optional[Dict[str, Union[str, int]]]:
-        return self.__headers
-
-    @headers.setter
-    def headers(self, value: Optional[Dict[str, Union[str, int]]]) -> None:
-        self.__headers = value
-        self.__session._default_headers = CIMultiDict(value) if value else CIMultiDict
-
-    @property
-    def auth(self) -> Optional[BasicAuth]:
-        return self.__auth
-
-    # Can't use @auth.setter for this sadly, then we would have to do `await setattr(http, "auth", value)` which doesn't look good at all.
-    async def update_auth(self, *, username: str, token: str) -> None:
-        session = self.__session
-
-        await self.__session.close()
-
-        self.__session = ClientSession(
-            headers=session.headers, auth=BasicAuth(username, token), trace_configs=session.trace_configs
-        )
-
     async def latency(self) -> float:
         last_ping = self._last_ping
 
