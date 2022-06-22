@@ -17,11 +17,6 @@ class BaseHTTPError(GitHubError):
 
 
 class HTTPError(BaseHTTPError):
-    def __new__(cls, response: ClientResponse, /) -> HTTPError:
-
-        # TODO: make custom error classes
-        return cls.__init__(cls, response)
-
     def __init__(self, response: ClientResponse, /) -> None:
         self.method = response.method
         self.code = response.status
