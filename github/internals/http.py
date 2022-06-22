@@ -126,7 +126,7 @@ class HTTPClient:
     async def __aexit__(self, *_) -> None:
         await self.__session.close()
 
-    async def start(self) -> Self:
+    async def init(self) -> Self:
         trace_config = TraceConfig()
 
         async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
@@ -137,6 +137,7 @@ class HTTPClient:
                     f" {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url},"
                     f" method: {params.method})"
                 )
+                # FIXME: probably broken
                 now = datetime.now(timezone.utc)
 
                 await asyncio.sleep(max((dt - now).total_seconds(), 0))
@@ -169,14 +170,14 @@ class HTTPClient:
         return self
 
     def __await__(self):
-        return self.start().__await__()
+        return await self.init()
 
     def data(self):
         # Returns session headers and auth.
         return {"headers": dict(self.__session.headers), "auth": self.__auth}
 
     @property
-    def started(self) -> bool:
+    def initialized(self) -> bool:
         try:
             session = self.__session
         except AttributeError:
@@ -219,7 +220,7 @@ class HTTPClient:
         return self._latency
 
     async def _request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
-        if not self.started:
+        if not self.initialized:
             raise ValueError("Client isnt started. Call HTTPClient.start before making HTTP requests.")
 
         async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
