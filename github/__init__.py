@@ -30,3 +30,4 @@ __license__ = "MIT"
 __copyright__ = "Copyright (c) 2022-present VarMonke & sudosnok"
 
 from .internals import *
+from .objects import *
