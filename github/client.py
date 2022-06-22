@@ -132,7 +132,6 @@ class GHClient:
         if not as_dict:
             return [f"{key} : {value}" for key, value in self.http.session._rates._asdict().items()]
 
-
         return self.http.session._rates  # type: ignore
 
     async def update_auth(self, *, username: str, token: str) -> None:
