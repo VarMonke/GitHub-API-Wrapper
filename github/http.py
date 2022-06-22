@@ -115,11 +115,17 @@ class HTTPClient:
         self._last_ping = 0
         self._latency = 0
 
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        await self.__session.close()
+
     async def start(self) -> Self:
         trace_config = TraceConfig()
 
         async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-            if int(self._rates.remaining) < 2:
+            if (remaining := self._rates.remaining) and int(remaining) < 2:
                 dt = self._rates.reset_time
                 log.info(f"Ratelimit exceeded, trying again at {dt.strftime('%H:%M:%S')} (URL: {params.url}, method: {params.method})")
                 now = dt.now(timezone.utc)
@@ -141,7 +147,7 @@ class HTTPClient:
                 datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
                 datetime.now(timezone.utc),
             )
-        trace_config.on_request_start.append(on_request_end)
+        trace_config.on_request_end.append(on_request_end)
 
         self.__session = ClientSession(
             headers=self.__headers,
@@ -163,7 +169,12 @@ class HTTPClient:
 
     @property
     def started(self) -> bool:
-        return bool(getattr(self, "__session", None))
+        try:
+            session = self.__session
+        except AttributeError:
+            session = None
+        finally:
+            return bool(session)
 
     @property
     def headers(self) -> Optional[Dict[str, Union[str, int]]]:
@@ -201,7 +212,7 @@ class HTTPClient:
 
     async def _request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
         if not self.started:
-            raise Exception("Client isnt started. Call HTTPClient.start before making HTTP requests.")
+            raise ValueError("Client isnt started. Call HTTPClient.start before making HTTP requests.")
 
         async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
             if 200 <= request.status <= 300:
