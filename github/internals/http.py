@@ -29,9 +29,6 @@ __all__: Tuple[str, ...] = ("HTTPClient",)
 log = logging.getLogger("github")
 
 
-LINK_REGEX = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
-
-
 class Ratelimit(NamedTuple):
     remaining: Optional[str]
     used: Optional[str]
