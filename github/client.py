@@ -130,11 +130,8 @@ class GHClient:
         if not self.has_started:
             raise exceptions.NotStarted
         if not as_dict:
-            output: List[str] = []
-            for key, value in self.http.session._rates._asdict().items():  # type: ignore
-                output.append(f"{key} : {value}")
+            return [f"{key} : {value}" for key, value in self.http.session._rates._asdict().items()]
 
-            return output
 
         return self.http.session._rates  # type: ignore
 
@@ -188,16 +185,14 @@ class GHClient:
             @functools.wraps(func)
             async def wrapped(self: Self, *args: P.args, **kwargs: P.kwargs) -> Optional[Union[T, User, Repository]]:
                 if type == "user":
-                    obj = self._user_cache.get(kwargs.get("user"))
-                    if obj:
+                    if obj := self._user_cache.get(kwargs.get("user")):
                         return obj
 
                     user: User = await func(self, *args, **kwargs)  # type: ignore
                     self._user_cache[kwargs.get("user")] = user
                     return user
                 if type == "repo":
-                    obj = self._repo_cache.get(kwargs.get("repo"))
-                    if obj:
+                    if obj := self._repo_cache.get(kwargs.get("repo")):
                         return obj
 
                     repo: Repository = await func(self, *args, **kwargs)  # type: ignore

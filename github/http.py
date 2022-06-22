@@ -270,16 +270,13 @@ class http:
     async def create_gist(
         self, *, files: List["File"] = [], description: str = "Default description", public: bool = False
     ) -> Dict[str, Union[str, int]]:
-        data = {}
-        data["description"] = description
-        data["public"] = public
-        data["files"] = {}
+        data = {"description": description, "public": public, "files": {}}
         for file in files:
             data["files"][file.filename] = {"filename": file.filename, "content": file.read()}  # helps editing the file
         data = json.dumps(data)
         _headers = dict(self.session.headers)
         result = await self.session.post(CREATE_GIST_URL, data=data, headers=_headers)
-        if 201 == result.status:
+        if result.status == 201:
             return await result.json()
         raise InvalidToken
 

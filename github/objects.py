@@ -1,6 +1,7 @@
 # == objects.py ==#
 from __future__ import annotations
 
+import pathlib
 from base64 import b64encode
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
@@ -128,10 +129,10 @@ class User(_BaseUser):
         for key, value in keys.items():
             if "_at" in key and value is not None:
                 setattr(self, key, dt_formatter(value))
-                continue
             else:
                 setattr(self, key, value)
-                continue
+
+            continue
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} login: {self.login!r}, id: {self.id}, created_at: {self.created_at}>"
@@ -336,11 +337,10 @@ class Issue(APIObject):
 
             if key == "closed_by":
                 setattr(self, key, User(value, self._http))
-                continue
-
             else:
                 setattr(self, key, value)
-                continue
+
+            continue
 
     def __repr__(self) -> str:
         return (
@@ -381,9 +381,7 @@ class File:
     def read(self) -> str:
         if isinstance(self.fp, str):
             if os.path.exists(self.fp):
-                with open(self.fp) as fp:
-                    data = fp.read()
-                return data
+                return pathlib.Path(self.fp).read_text()
             return self.fp
         elif isinstance(self.fp, io.BytesIO):
             return self.fp.read().decode("utf-8")
@@ -511,11 +509,10 @@ class Organization(APIObject):
                 continue
             if "_at" in key and value is not None:
                 setattr(self, key, dt_formatter(value))
-                continue
-
             else:
                 setattr(self, key, value)
-                continue
+
+            continue
 
     def __repr__(self):
         return (
