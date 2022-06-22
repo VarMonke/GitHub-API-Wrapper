@@ -5,7 +5,7 @@ import logging
 import platform
 import time
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Dict, List, Literal, NamedTuple, Optional, Tuple, Union, Awaitable
+from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 from aiohttp import BasicAuth, ClientSession, TraceConfig
 
@@ -246,7 +246,9 @@ class HTTPClient:
         delete_branch_on_merge: Optional[bool] = None,
         use_squash_pr_title_as_default: Optional[bool] = None,
     ):
-        data = {"name": name}
+        data = {
+            "name": name,
+        }
 
         if description:
             data["description"] = description
@@ -398,7 +400,9 @@ class HTTPClient:
     async def create_repo_dispatch_event(
         self, *, owner: str, repo: str, event_name: str, client_payload: Optional[str] = None
     ):
-        data = {"event_name": event_name}
+        data = {
+            "event_name": event_name,
+        }
 
         if client_payload:
             data["client_payload"] = client_payload
@@ -442,7 +446,9 @@ class HTTPClient:
         return await self._request("PUT", f"repos/{owner}/{repo}/topics", json={"names": names})
 
     async def transfer_repo(self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None):
-        data = {"new_owner": new_owner}
+        data = {
+            "new_owner": new_owner,
+        }
 
         if team_ids:
             data["team_ids"] = team_ids
@@ -468,7 +474,9 @@ class HTTPClient:
         include_all_branches: Optional[bool] = None,
         private: Optional[bool] = None,
     ):
-        data = {"name": str}
+        data = {
+            "name": str,
+        }
 
         if owner:
             data["owner"] = owner
@@ -540,7 +548,9 @@ class HTTPClient:
         has_downloads: Optional[bool] = None,
         is_template: Optional[bool] = None,
     ):
-        data = {"name": name}
+        data = {
+            "name": name,
+        }
 
         if description:
             data["description"] = description
