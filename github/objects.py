@@ -11,8 +11,6 @@ if TYPE_CHECKING:
 from datetime import datetime
 
 __all__: Tuple[str, ...] = (
-    "dt_formatter",
-    "repr_dt",
     "PartialUser",
     "User",
     "Repository",
