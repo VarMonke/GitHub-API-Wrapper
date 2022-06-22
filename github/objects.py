@@ -38,17 +38,7 @@ def bytes_to_b64(content) -> str:
     return b64encode(content.encode("utf-8")).decode("ascii")
 
 
-class APIObject:
-    """Top level class for objects created from the API"""
 
-    __slots__: Tuple[str, ...] = ("_response", "_http")
-
-    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
-        self._http = _http
-        self._response = response
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}>"
 
 
 # === User stuff ===#
