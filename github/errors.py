@@ -19,6 +19,7 @@ class BaseHTTPError(GitHubError):
 
 class HTTPError(BaseHTTPError):
     """Raised when an HTTP request doesn't respond with a successfull code."""
+
     def __init__(self, response: ClientResponse, /) -> None:
         self.method = response.method
         self.code = response.status

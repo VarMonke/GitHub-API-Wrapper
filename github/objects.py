@@ -4,20 +4,20 @@ from __future__ import annotations
 from base64 import b64encode
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from .objects import Object as APIObject
+
 if TYPE_CHECKING:
-    from .http import HTTPClient
+    from .internals import HTTPClient
 
 from datetime import datetime
 
 __all__: Tuple[str, ...] = (
-    "APIObject",
     "dt_formatter",
     "repr_dt",
     "PartialUser",
     "User",
     "Repository",
     "Issue",
-    "File",
     "Gist",
     "Organization",
 )

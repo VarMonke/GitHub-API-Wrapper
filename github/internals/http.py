@@ -19,14 +19,12 @@ from ..errors import HTTPError
 if TYPE_CHECKING:
     from types import SimpleNamespace
 
-    from aiohttp import TraceRequestEndParams, ClientResponse
+    from aiohttp import TraceRequestEndParams
     from typing_extensions import Self
 
     from ..types import SecurtiyAndAnalysis
 
-__all__: Tuple[str, ...] = (
-    "HTTPClient",
-)
+__all__: Tuple[str, ...] = ("HTTPClient",)
 
 log = logging.getLogger("github")
 
