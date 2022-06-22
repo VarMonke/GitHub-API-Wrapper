@@ -374,21 +374,23 @@ class File:
         An override to the file's name, encouraged to provide this if using a StringIO instance.
     """
 
-    def __init__(self, fp: Union[str, io.StringIO, io.BytesIO], filename: str = "DefaultFilename.txt") -> None:
-        self.fp = fp
-        self.filename = filename
+    def __init__(self, file: Union[str, io.StringIO, io.BytesIO], /, *, name: str) -> None:
+        self.file = file
+        self.name = filename
 
     def read(self) -> str:
-        if isinstance(self.fp, str):
-            if os.path.exists(self.fp):
-                return pathlib.Path(self.fp).read_text()
-            return self.fp
-        elif isinstance(self.fp, io.BytesIO):
-            return self.fp.read().decode("utf-8")
-        elif isinstance(self.fp, io.StringIO):  # type: ignore
-            return self.fp.getvalue()
+        f = self.file
 
-        raise TypeError(f"Expected str, io.StringIO, or io.BytesIO, got {type(self.fp)}")
+        if isinstance(f, io.BytesIO):
+            return self.file.read().decode("utf-8")
+
+        if isinstance(f, io.StringIO):
+            return self.file.getvalue()
+
+        if os.path.exists(f):
+            return pathlib.Path(f).read_text()
+
+        return f
 
 
 class Gist(APIObject):

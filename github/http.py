@@ -2,111 +2,66 @@
 
 from __future__ import annotations
 
-import json
 import platform
 import re
+import time
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, Union
+from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
-import aiohttp
-from typing_extensions import TypeAlias
+from aiohttp import ClientSession, BasicAuth, TraceRequestEndParams, TraceConfig
+from multidict import CIMultiDict
+from typing_extensions import Self
 
 from . import __version__
-from .exceptions import *
-from .objects import File, Gist, Repository, User, bytes_to_b64
-from .urls import *
+from .errors import HTTPError
+from .types import SecurtiyAndAnalysis
 
 __all__: Tuple[str, ...] = (
-    "Paginator",
+    # "Paginator",
     "HTTPClient",
 )
 
 
-LINK_PARSING_RE = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
+LINK_REGEX = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
 
 
-class Rates(NamedTuple):
-    remaining: str
-    used: str
-    total: str
-    reset_when: Union[datetime, str]
-    last_request: Union[datetime, str]
+class Ratelimits(NamedTuple):
+    remaining: Optional[str]
+    used: Optional[str]
+    total: Optional[str]
+    reset_when: Optional[datetime]
+    last_request: Optional[datetime]
 
 
-# aiohttp request tracking / checking bits
-async def on_req_start(
-    session: aiohttp.ClientSession, ctx: SimpleNamespace, params: aiohttp.TraceRequestStartParams
-) -> None:
-    """Before-request hook to make sure we don't overrun the ratelimit."""
-    # print(repr(session), repr(ctx), repr(params))
-    if session._rates.remaining in ("0", "1"):  # type: ignore
-        raise Exception("Ratelimit exceeded")
-
-
-async def on_req_end(session: aiohttp.ClientSession, ctx: SimpleNamespace, params: aiohttp.TraceRequestEndParams) -> None:
-    """After-request hook to adjust remaining requests on this time frame."""
-    headers = params.response.headers
-
-    remaining = headers["X-RateLimit-Remaining"]
-    used = headers["X-RateLimit-Used"]
-    total = headers["X-RateLimit-Limit"]
-    reset_when = datetime.fromtimestamp(int(headers["X-RateLimit-Reset"]))
-    last_req = datetime.utcnow()
-
-    session._rates = Rates(remaining, used, total, reset_when, last_req)
-
-
-trace_config = aiohttp.TraceConfig()
-trace_config.on_request_start.append(on_req_start)
-trace_config.on_request_end.append(on_req_end)
-
-APIType: TypeAlias = Union[User, Gist, Repository]
-
-
-async def make_session(*, headers: Dict[str, str], authorization: Union[aiohttp.BasicAuth, None]) -> aiohttp.ClientSession:
-    """This makes the ClientSession, attaching the trace config and ensuring a UA header is present."""
-    if not headers.get("User-Agent"):
-        headers["User-Agent"] = (
-            f"Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @ {__version__} Python"
-            f" {platform.python_version()} aiohttp {aiohttp.__version__}"
-        )
-
-    session = aiohttp.ClientSession(auth=authorization, headers=headers, trace_configs=[trace_config])
-    session._rates = Rates("", "", "", "", "")
-    return session
-
-
-# pagination
-class Paginator:
-    """This class handles pagination for objects like Repos and Orgs."""
-
-    def __init__(self, session: aiohttp.ClientSession, response: aiohttp.ClientResponse, target_type: str):
-        self.session = session
+# willredesign later
+"""class HTTPPaginator:
+    def __init__(self, *, session: ClientSession, response: ClientResponse, type: Literal["user", "gist", "repo"]):
+        self.__session = session
         self.response = response
+
         self.should_paginate = bool(self.response.headers.get("Link", False))
-        types: Dict[str, Type[APIType]] = {  # note: the type checker doesnt see subclasses like that
+
+        self.type = {
             "user": User,
             "gist": Gist,
             "repo": Repository,
-        }
-        self.target_type: Type[APIType] = types[target_type]
+        }[type]
+
         self.pages = {}
         self.is_exhausted = False
         self.current_page = 1
-        self.next_page = self.current_page + 1
+
         self.parse_header(response)
 
-    async def fetch_page(self, link: str) -> Dict[str, Union[str, int]]:
-        """Fetches a specific page and returns the JSON."""
+    async def fetch_page(self, link: str, /):
         return await (await self.session.get(link)).json()
 
-    async def early_return(self) -> List[APIType]:
+    async def early_return(self):
         # I don't rightly remember what this does differently, may have a good ol redesign later
         return [self.target_type(data, self) for data in await self.response.json()]  # type: ignore
 
-    async def exhaust(self) -> List[APIType]:
-        """Iterates through all of the pages for the relevant object and creates them."""
+    async def exhaust(self):
         if self.should_paginate:
             return await self.early_return()
 
@@ -118,202 +73,591 @@ class Paginator:
         self.is_exhausted = True
         return out
 
-    def parse_header(self, response: aiohttp.ClientResponse) -> None:
-        """Predicts wether a call will exceed the ratelimit ahead of the call."""
+    def parse_header(self, response: ClientResponse, /) -> None:
         header = response.headers["Link"]
-        groups = LINK_PARSING_RE.findall(header)
+
+        links = LINK_PARSING_RE.findall(header)
+
         self.max_page = int(groups[1][1])
+
         if int(response.headers["X-RateLimit-Remaining"]) < self.max_page:
             raise WillExceedRatelimit(response, self.max_page)
-        self.bare_link = groups[0][0][:-1]
 
-
-# GithubUserData = GithubRepoData = GithubIssueData = GithubOrgData = GithubGistData = Dict[str, Union [str, int]]
-# Commentnig this out for now, consider using TypeDict's instead in the future <3
+        self.bare_link = groups[0][0][:-1]"""
 
 
 class HTTPClient:
-    def __init__(self, headers: Dict[str, Union[str, int]], auth: Union[aiohttp.BasicAuth, None]) -> None:
-        if not headers.get("User-Agent"):
-            headers["User-Agent"] = (
-                "Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
-                f" {__version__} Python/{platform.python_version()} aiohttp/{aiohttp.__version__}"
-            )
+    __session: Optional[ClientSession]
 
-        self._rates = Rates("", "", "", "", "")
-        self.headers = headers
-        self.auth = auth
+    def __init__(
+        self, *, headers: Optional[Dict[str, Union[str, int]]] = None, auth: Optional[BasicAuth] = None
+    ) -> None:
+        if not headers:
+            headers = {}
+
+        headers.setdefault(
+            "User-Agent",
+            "Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
+            f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
+        )
+
+        self._rates = Ratelimits(None, None, None, None, None)
+        self.__headers = headers
+        self.__auth = auth
+
+        self._last_ping = 0
+        self._latency = 0
+
+    async def start(self) -> Self:
+        trace_config = TraceConfig()
+
+        async def on_request_start(*_) -> None:
+            if self._rates.remaining in ("0", "1"):
+                raise Exception("Ratelimit exceeded")  # TODO: raise RatelimitReached error or something.
+        trace_config.on_request_start.append(on_request_start)
+
+        async def on_request_end(
+            session: ClientSession, _: SimpleNamespace, params: TraceRequestEndParams
+        ) -> None:
+            """After-request hook to adjust remaining requests on this time frame."""
+            headers = params.response.headers
+
+            session._rates = Ratelimits(
+                headers["X-RateLimit-Remaining"],
+                headers["X-RateLimit-Used"],
+                headers["X-RateLimit-Limit"],
+                datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
+                datetime.utcnow(),
+            )
+        trace_config.on_request_start.append(on_request_end)
+
+        self.__session = ClientSession(
+            headers=self.__headers,
+            auth=self.__auth,
+            trace_configs=[trace_config],
+        )
+
+        if not hasattr(self.__session, "_rates"):
+            self.__session._rates = self._rates
+
+        return self
 
     def __await__(self):
         return self.start().__await__()
 
-    async def start(self):
-        self.session = aiohttp.ClientSession(
-            headers=self.headers,  # type: ignore
-            auth=self.auth,
-            trace_configs=[trace_config],
-        )
-        if not hasattr(self.session, "_rates"):
-            self.session._rates = Rates("", "", "", "", "")
-        return self
-
-    def update_headers(self, *, flush: bool = False, new_headers: Dict[str, Union[str, int]]):
-        if flush:
-            from multidict import CIMultiDict
-
-            self.session._default_headers = CIMultiDict(**new_headers)  # type: ignore
-        else:
-            self.session._default_headers = {**self.session.headers, **new_headers}  # type: ignore
-
-    async def update_auth(self, *, username: str, token: str):
-        auth = aiohttp.BasicAuth(username, token)
-        headers = self.session.headers
-        config = self.session.trace_configs
-        await self.session.close()
-        self.session = aiohttp.ClientSession(headers=headers, auth=auth, trace_configs=config)
-
     def data(self):
-        # return session headers and auth
-        headers = {**self.session.headers}
-        return {"headers": headers, "auth": self.auth}
+        # Returns session headers and auth.
+        return {"headers": dict(self.__session.headers), "auth": self.__auth}
 
-    async def latency(self):
-        """Returns the latency of the current session."""
-        start = datetime.utcnow()
-        await self.session.get(BASE_URL)
-        return (datetime.utcnow() - start).total_seconds()
+    @property
+    def started(self) -> bool:
+        return bool(getattr(self, "__session", None))
 
-    async def get_self(self) -> Dict[str, Union[str, int]]:
-        """Returns the authenticated User's data"""
-        result = await self.session.get(SELF_URL)
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise InvalidToken
+    @property
+    def headers(self) -> Optional[Dict[str, Union[str, int]]]:
+        return self.__headers
 
-    async def get_user(self, username: str) -> Dict[str, Union[str, int]]:
-        """Returns a user's public data in JSON format."""
-        result = await self.session.get(USERS_URL.format(username))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise UserNotFound
+    @headers.setter
+    def headers(self, value: Optional[Dict[str, Union[str, int]]]) -> None:
+        self.__headers = value
+        self.__session._default_headers = CIMultiDict(value) if value else CIMultiDict
 
-    async def get_user_repos(self, _user: User) -> List[Dict[str, Union[str, int]]]:
-        result = await self.session.get(USER_REPOS_URL.format(_user.login))
-        if 200 <= result.status <= 299:
-            return await result.json()
+    @property
+    def auth(self) -> Optional[BasicAuth]:
+        return self.__auth
 
-        print("This shouldn't be reachable")
-        return []
+    # Can't use @auth.setter for this sadly, then we would have to do `await setattr(http, "auth", value)` which doesn't look good at all.
+    async def update_auth(self, *, username: str, token: str) -> None:
+        session = self.__session
 
-    async def get_user_gists(self, _user: User) -> List[Dict[str, Union[str, int]]]:
-        result = await self.session.get(USER_GISTS_URL.format(_user.login))
-        if 200 <= result.status <= 299:
-            return await result.json()
+        await self.__session.close()
 
-        print("This shouldn't be reachable")
-        return []
+        self.__session = ClientSession(
+            headers=session.headers, auth=BasicAuth(username, token), trace_configs=session.trace_configs
+        )
 
-    async def get_user_orgs(self, _user: User) -> List[Dict[str, Union[str, int]]]:
-        result = await self.session.get(USER_ORGS_URL.format(_user.login))
-        if 200 <= result.status <= 299:
-            return await result.json()
+    async def latency(self) -> float:
+        last_ping = self._last_ping
 
-        print("This shouldn't be reachable")
-        return []
+        # If there was no ping or the last ping was more than 5 seconds ago.
+        if not last_ping or int(time.time()) > last_ping + 5:
+            start = time.monotonic()
+            await self._request("GET")
+            self._latency = time.monotonic() - start
 
-    async def get_repo(self, owner: str, repo_name: str) -> Optional[Dict[str, Union[str, int]]]:
-        """Returns a Repo's raw JSON from the given owner and repo name."""
-        result = await self.session.get(REPO_URL.format(owner, repo_name))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise RepositoryNotFound
+        return self._latency
 
-    async def get_repo_issue(self, owner: str, repo_name: str, issue_number: int) -> Optional[Dict[str, Any]]:
-        """Returns a single issue's JSON from the given owner and repo name."""
-        result = await self.session.get(REPO_ISSUE_URL.format(owner, repo_name, issue_number))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise IssueNotFound
+    async def _request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
+        if not self.started:
+            raise None  # TODO: raise
 
-    async def delete_repo(self, owner: Optional[str], repo_name: str) -> Optional[str]:
-        """Deletes a Repo from the given owner and repo name."""
-        result = await self.session.delete(REPO_URL.format(owner, repo_name))
-        if 204 <= result.status <= 299:
-            return "Successfully deleted repository."
-        if result.status == 403:  # type: ignore
-            raise MissingPermissions
-        raise RepositoryNotFound
+        async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
+            if 200 <= request.status <= 300:
+                return await request.json()
 
-    async def delete_gist(self, gist_id: Union[str, int]) -> Optional[str]:
-        """Deletes a Gist from the given gist id."""
-        result = await self.session.delete(GIST_URL.format(gist_id))
-        if result.status == 204:
-            return "Successfully deleted gist."
-        if result.status == 403:
-            raise MissingPermissions
-        raise GistNotFound
+            raise HTTPError(request)
 
-    async def get_org(self, org_name: str) -> Dict[str, Union[str, int]]:
-        """Returns an org's public data in JSON format."""  # type: ignore
-        result = await self.session.get(ORG_URL.format(org_name))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise OrganizationNotFound
+    # === ROUTES === #
 
-    async def get_gist(self, gist_id: str) -> Dict[str, Union[str, int]]:
-        """Returns a gist's raw JSON from the given gist id."""
-        result = await self.session.get(GIST_URL.format(gist_id))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        raise GistNotFound
+    # Users
 
-    async def create_gist(
-        self, *, files: List["File"] = [], description: str = "Default description", public: bool = False
-    ) -> Dict[str, Union[str, int]]:
-        data = {"description": description, "public": public, "files": {}}
-        for file in files:
-            data["files"][file.filename] = {"filename": file.filename, "content": file.read()}  # helps editing the file
-        data = json.dumps(data)
-        _headers = dict(self.session.headers)
-        result = await self.session.post(CREATE_GIST_URL, data=data, headers=_headers)
-        if result.status == 201:
-            return await result.json()
-        raise InvalidToken
+    async def get_self(self):
+        return await self._request("GET", "user")
+
+    async def update_self(
+        self,
+        *,
+        name: Optional[str] = None,
+        email: Optional[str] = None,
+        blog: Optional[str] = None,
+        twitter_username: Optional[str] = None,
+        company: Optional[str] = None,
+        location: Optional[str] = None,
+        hireable: Optional[str] = None,
+        bio: Optional[str] = None,
+    ):
+        data = {}
+
+        if name:
+            data["name"] = name
+        if email:
+            data["email"] = email
+        if blog:
+            data["blog"] = blog
+        if twitter_username:
+            data["twitter_username"] = twitter_username
+        if company:
+            data["company"] = company
+        if location:
+            data["location"] = location
+        if hireable:
+            data["hireable"] = hireable
+        if bio:
+            data["bio"] = bio
+
+        return await self._request("PATCH", "user", json=data)
+
+    async def list_users(self, *, since: Optional[int] = None, per_page: Optional[int] = None):
+        data = {}
+
+        if since:
+            data["since"] = since
+        if per_page:
+            data["per_page"] = per_page
+
+        return await self._request("GET", "users", json=data)
+
+    async def get_user(self, *, username: str):
+        return await self._request("GET", f"users/{username}")
+
+    # TODO: /users/{username}/hovercard
+    # idk what to name it
+
+    # Repos
+
+    async def list_org_repos(
+        self,
+        *,
+        org: str,
+        type: Optional[Literal["all", "public", "private", "forks", "sources", "member", "internal"]] = None,
+        sort: Optional[Literal["created", "updated", "pushed", "full_name"]] = None,
+        direction: Optional[Literal["asc", "desc"]] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
+    ):
+        data = {}
+
+        if type:
+            data["type"] = type
+        if sort:
+            data["sort"] = sort
+        if direction:
+            data["direction"] = direction
+        if per_page:
+            data["per_page"] = per_page
+        if page:
+            data["page"] = page
+
+        return await self._request("GET", f"orgs/{org}/repos", json=data)
+
+    async def create_org_repo(
+        self,
+        *,
+        org: str,
+        name: str,
+        description: Optional[str] = None,
+        homepage: Optional[str] = None,
+        private: Optional[bool] = None,
+        visibility: Optional[Literal["public", "private", "internal"]] = None,
+        has_issues: Optional[bool] = None,
+        has_projects: Optional[bool] = None,
+        has_wiki: Optional[bool] = None,
+        is_template: Optional[bool] = None,
+        team_id: Optional[int] = None,
+        auto_init: Optional[bool] = None,
+        gitignore_template: Optional[str] = None,
+        license_template: Optional[str] = None,
+        allow_squash_merge: Optional[bool] = None,
+        allow_merge_commit: Optional[bool] = None,
+        allow_rebase_merge: Optional[bool] = None,
+        allow_auto_merge: Optional[bool] = None,
+        delete_branch_on_merge: Optional[bool] = None,
+        use_squash_pr_title_as_default: Optional[bool] = None,
+    ):
+        data = {"name": name}
+
+        if description:
+            data["description"] = description
+        if homepage:
+            data["homepage"] = homepage
+        if private:
+            data["private"] = private
+        if visibility:
+            data["visibility"] = visibility
+        if has_issues:
+            data["has_issues"] = has_issues
+        if has_projects:
+            data["has_projects"] = has_projects
+        if has_wiki:
+            data["has_wiki"] = has_wiki
+        if is_template:
+            data["is_template"] = is_template
+        if team_id:
+            data["team_id"] = team_id
+        if auto_init:
+            data["auto_init"] = auto_init
+        if gitignore_template:
+            data["gitignore_template"] = gitignore_template
+        if license_template:
+            data["license_template"] = license_template
+        if allow_squash_merge:
+            data["allow_squash_merge"] = allow_squash_merge
+        if allow_merge_commit:
+            data["allow_merge_commit"] = allow_merge_commit
+        if allow_rebase_merge:
+            data["allow_rebase_merge "] = allow_rebase_merge
+        if allow_auto_merge:
+            data["allow_auto_merge"] = allow_auto_merge
+        if delete_branch_on_merge:
+            data["delete_branch_on_merge"] = delete_branch_on_merge
+        if use_squash_pr_title_as_default:
+            data["use_squash_pr_title_as_default"] = use_squash_pr_title_as_default
+
+        return await self._request("POST", f"orgs/{org}/repos", json=data)
+
+    async def get_repo(self, *, owner: str, repo: str):
+        return await self._request("GET", f"repos/{owner}/{repo}")
+
+    async def update_repo(
+        self,
+        *,
+        owner: str,
+        repo: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        homepage: Optional[str] = None,
+        private: Optional[bool] = None,
+        visibility: Optional[Literal["public", "private", "internal"]] = None,
+        security_and_analysis: Optional[SecurtiyAndAnalysis] = None,
+        has_issues: Optional[bool] = None,
+        has_projects: Optional[bool] = None,
+        has_wiki: Optional[bool] = None,
+        is_template: Optional[bool] = None,
+        default_branch: Optional[str] = None,
+        allow_squash_merge: Optional[bool] = None,
+        allow_merge_commit: Optional[bool] = None,
+        allow_rebase_merge: Optional[bool] = None,
+        allow_auto_merge: Optional[bool] = None,
+        delete_branch_on_merge: Optional[bool] = None,
+        use_squash_pr_title_as_default: Optional[bool] = None,
+        archived: Optional[bool] = None,
+        allow_forking: Optional[bool] = None,
+    ):
+        data = {}
+        
+        if name:
+            data["name"] = name
+        if description:
+            data["description"] = description
+        if homepage:
+            data["homepage"] = homepage
+        if private:
+            data["private"] = private
+        if visibility:
+            data["visibility"] = visibility
+        if security_and_analysis:
+            data["security_and_analysis"] = security_and_analysis
+        if has_issues:
+            data["has_issues"] = has_issues
+        if has_projects:
+            data["has_projects"] = has_projects
+        if has_wiki:
+            data["has_wiki"] = has_wiki
+        if is_template:
+            data["is_template"] = is_template
+        if default_branch:
+            data["default_branch"] = default_branch
+        if allow_squash_merge:
+            data["allow_squash_merge"] = allow_squash_merge
+        if allow_merge_commit:
+            data["allow_merge_commit"] = allow_merge_commit
+        if allow_rebase_merge:
+            data["allow_rebase_merge "] = allow_rebase_merge
+        if allow_auto_merge:
+            data["allow_auto_merge "] = allow_auto_merge
+        if delete_branch_on_merge:
+            data["delete_branch_on_merge "] = delete_branch_on_merge
+        if use_squash_pr_title_as_default:
+            data["use_squash_pr_title_as_default"] = use_squash_pr_title_as_default
+        if archived:
+            data["archived"] = archived
+        if allow_forking:
+            data["allow_forking"] = allow_forking
+
+        return await self._request("PATCH", f"repos/{owner}/{repo}")
+
+    async def delete_repo(self, *, owner: str, repo: str):
+        return await self._request("DELETE", f"repos/{owner}/{repo}")
+
+    async def enable_repo_automated_security_fixes(self, *, owner: str, repo: str):
+        return await self._request("PUT", f"repos/{owner}/{repo}/automated-security-fixes")
+
+    async def disable_repo_automated_security_fixes(self, *, owner: str, repo: str):
+        return await self._request("DELETE", f"repos/{owner}/{repo}/automated-security-fixes")
+
+    async def list_repo_codeowners_erros(self, *, owner: str, repo: str, ref: Optional[str] = None):
+        params = {}
+
+        if ref:
+            params["ref"] = ref
+
+        return await self._request("GET", f"repos/{owner}/{repo}/codeowners/errors", params=params)
+
+    async def list_repo_contributors(
+        self,
+        *,
+        owner: str,
+        repo: str,
+        anon: Optional[bool] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
+    ):
+        params = {}
+
+        if anon:
+            params["anon"] = anon
+        if per_page:
+            params["per_page"] = per_page
+        if page:
+            params["page"] = page
+
+        return await self._request("GET", f"repos/{owner}/{repo}/contributors", params=params)
+
+    async def create_repo_dispatch_event(
+        self, *, owner: str, repo: str, event_name: str, client_payload: Optional[str] = None
+    ):
+        data = {"event_name": event_name}
+
+        if client_payload:
+            data["client_payload"] = client_payload
+
+        return await self._request("POST", f"repos/{owner}/{repo}/dispatches", json=data)
+
+    async def list_repo_languages(self, *, owner: str, repo: str):
+        return await self._request("GET", f"repos/{owner}/{repo}/languages")
+
+    async def list_repo_tags(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+        params = {}
+
+        if per_page:
+            params["per_page"] = per_page
+        if page:
+            params["page"] = page
+
+        return await self._request("GET", f"repos/{owner}/{repo}/tags", params=params)
+
+    async def list_repo_teams(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+        params = {}
+
+        if per_page:
+            params["per_page"] = per_page
+        if page:
+            params["page"] = page
+
+        return await self._request("GET", f"repos/{owner}/{repo}/teams", params=params)
+
+    async def get_all_repo_topic(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+        params = {}
+
+        if per_page:
+            params["per_page"] = per_page
+        if page:
+            params["page"] = page
+
+        return await self._request("GET", f"repos/{owner}/{repo}/topics", params=params)
+
+    async def replace_all_repo_topics(self, *, owner: str, repo: str, names: List[str]):
+        return await self._request("PUT", f"repos/{owner}/{repo}/topics", json={"names": names})
+
+    async def transfer_repo(self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None):
+        data = {"new_owner": new_owner}
+
+        if team_ids:
+            data["team_ids"] = team_ids
+
+        return await self._request("POST", f"repos/{owner}/{repo}/transfer", json=data)
+
+    async def check_repo_vulnerability_alerts_enabled(self, *, owner: str, repo: str):
+        return await self._request("GET", f"repos/{owner}/{repo}/vulnerability-alerts")
+
+    async def enable_repo_vulnerability_alerts(self, *, owner: str, repo: str):
+        return await self._request("PUT", f"repos/{owner}/{repo}/vulnerability-alerts")
+
+    async def disable_repo_vulnerability_alerts(self, *, owner: str, repo: str):
+        return await self._request("DELETE", f"repos/{owner}/{repo}/vulnerability-alerts")
+
+    async def create_repo_using_template(
+        self,
+        *,
+        template_owner: str,
+        template_repo: str,
+        owner: Optional[str] = None,
+        name: str,
+        include_all_branches: Optional[bool] = None,
+        private: Optional[bool] = None,
+    ):
+        data = {"name": str}
+
+        if owner:
+            data["owner"] = owner
+        if include_all_branches:
+            data["include_all_branches"] = include_all_branches
+        if private:
+            data["private"] = private
+
+        return await self._request("POST", f"repos/{template_owner}/{template_repo}/generate", json=data)
+
+    async def list_public_repos(self, *, since: Optional[int] = None):
+        return await self._request("GET", "repositories", params={"since": since})
+
+    async def list_self_repos(
+        self,
+        *,
+        visibility: Optional[Literal["all", "private", "public"]] = None,
+        affiliation: Optional[Literal["owner", "collaborator", "organization_member"]] = None,
+        type: Optional[Literal["all", "owner", "public", "private", "member"]] = None,
+        sort: Optional[Literal["created", "updated", "pushed", "full_name"]] = None,
+        direction: Optional[Literal["asc", "desc"]] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
+        since: Optional[str] = None,
+        before: Optional[str] = None,
+    ):
+        data = {}
+
+        if visibility:
+            data["visibility"] = visibility
+        if affiliation:
+            data["affiliation"] = affiliation
+        if type:
+            data["type"] = type
+        if sort:
+            data["sort"] = sort
+        if direction:
+            data["direction"] = direction
+        if per_page:
+            data["per_page"] = per_page
+        if page:
+            data["page"] = page
+        if since:
+            data["since"] = since
+        if before:
+            data["before"] = before
+
+        return self._request("POST", "user/repos", json=data)
 
     async def create_repo(
-        self, name: str, description: str, public: bool, gitignore: Optional[str], license: Optional[str]
-    ) -> Dict[str, Union[str, int]]:
-        """Creates a repo for you with given data"""
-        data = {
-            "name": name,
-            "description": description,
-            "public": public,
-            "gitignore_template": gitignore,
-            "license": license,
-        }
-        result = await self.session.post(CREATE_REPO_URL, data=json.dumps(data))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        if result.status == 401:
-            raise NoAuthProvided
-        raise RepositoryAlreadyExists
+        self,
+        *,
+        name: str,
+        description: Optional[str] = None,
+        homepage: Optional[str] = None,
+        private: Optional[bool] = None,
+        has_issues: Optional[bool] = None,
+        has_projects: Optional[bool] = None,
+        has_wiki: Optional[bool] = None,
+        team_id: Optional[int] = None,
+        auto_init: Optional[bool] = None,
+        gitignore_template: Optional[str] = None,
+        license_template: Optional[str] = None,
+        allow_squash_merge: Optional[bool] = None,
+        allow_merge_commit: Optional[bool] = None,
+        allow_rebase_merge: Optional[bool] = None,
+        allow_auto_merge: Optional[bool] = None,
+        delete_branch_on_merge: Optional[bool] = None,
+        has_downloads: Optional[bool] = None,
+        is_template: Optional[bool] = None,
+    ):
+        data = {"name": name}
+        
+        if description:
+            data["description"] = description
+        if homepage:
+            data["homepage"] = homepage
+        if private:
+            data["private"] = private
+        if has_issues:
+            data["has_issues"] = has_issues
+        if has_projects:
+            data["has_projects"] = has_projects
+        if has_wiki:
+            data["has_wiki"] = has_wiki
+        if team_id:
+            data["team_id"] = team_id
+        if auto_init:
+            data["auto_init"] = auto_init
+        if gitignore_template:
+            data["gitignore_template"] = gitignore_template
+        if license_template:
+            data["license_template"] = license_template
+        if allow_squash_merge:
+            data["allow_squash_merge"] = allow_squash_merge
+        if allow_merge_commit:
+            data["allow_merge_commit"] = allow_merge_commit
+        if allow_rebase_merge:
+            data["allow_rebase_merge"] = allow_rebase_merge
+        if allow_auto_merge:
+            data["allow_auto_merge"] = allow_auto_merge
+        if delete_branch_on_merge:
+            data["delete_branch_on_merge"] = delete_branch_on_merge
+        if has_downloads:
+            data["has_downloads"] = has_downloads
+        if is_template:
+            data["is_template"] = is_template
 
-    async def add_file(self, owner: str, repo_name: str, filename: str, content: str, message: str, branch: str):
-        """Adds a file to the given repo."""
+        return await self._request("POST", "user/repos", json=data)
 
-        data = {
-            "content": bytes_to_b64(content=content),
-            "message": message,
-            "branch": branch,
-        }
+    async def list_user_repos(
+        self,
+        *,
+        username: str,
+        type: Optional[Literal["all", "public", "private", "forks", "sources", "member", "internal"]] = None,
+        sort: Optional[Literal["created", "updated", "pushed", "full_name"]] = None,
+        direction: Optional[Literal["asc", "desc"]] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
+    ):
+        data = {}
 
-        result = await self.session.put(ADD_FILE_URL.format(owner, repo_name, filename), data=json.dumps(data))
-        if 200 <= result.status <= 299:
-            return await result.json()
-        if result.status == 401:
-            raise NoAuthProvided
-        if result.status == 409:
-            raise FileAlreadyExists
-        if result.status == 422:
-            raise FileAlreadyExists("This file exists, and can only be edited.")
-        return await result.json(), result.status
+        if type:
+            data["type"] = type
+        if sort:
+            data["sort"] = sort
+        if direction:
+            data["direction"] = direction
+        if per_page:
+            data["per_page"] = per_page
+        if page:
+            data["page"] = page
+
+        return await self._request("GET", f"users/{username}/repos", json=data)
