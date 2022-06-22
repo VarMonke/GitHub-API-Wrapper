@@ -359,40 +359,6 @@ class Issue(APIObject):
         return self._response.get("html_url")
 
 
-# === Gist stuff ===#
-
-
-class File:
-    """A wrapper around files and in-memory file-like objects.
-
-    Parameters
-    ----------
-    fp: Union[:class:`str`, :class:`io.StringIO`, :class:`io.BytesIO`]
-        The filepath or StringIO representing a file to upload.
-        If providing a StringIO instance, a filename shuold also be provided to the file.
-    filename: :class:`str`
-        An override to the file's name, encouraged to provide this if using a StringIO instance.
-    """
-
-    def __init__(self, file: Union[str, io.StringIO, io.BytesIO], /, *, name: str) -> None:
-        self.file = file
-        self.name = filename
-
-    def read(self) -> str:
-        f = self.file
-
-        if isinstance(f, io.BytesIO):
-            return self.file.read().decode("utf-8")
-
-        if isinstance(f, io.StringIO):
-            return self.file.getvalue()
-
-        if os.path.exists(f):
-            return pathlib.Path(f).read_text()
-
-        return f
-
-
 class Gist(APIObject):
     """Representation of a gist on Github.
 
