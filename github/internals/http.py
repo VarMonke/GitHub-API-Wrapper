@@ -19,13 +19,12 @@ from ..errors import HTTPError
 if TYPE_CHECKING:
     from types import SimpleNamespace
 
-    from aiohttp import TraceRequestEndParams
+    from aiohttp import TraceRequestEndParams, ClientResponse
     from typing_extensions import Self
 
     from ..types import SecurtiyAndAnalysis
 
 __all__: Tuple[str, ...] = (
-    # "Paginator",
     "HTTPClient",
 )
 
@@ -41,58 +40,6 @@ class Ratelimit(NamedTuple):
     total: Optional[str]
     reset_time: Optional[datetime]
     last_request: Optional[datetime]
-
-
-# will redesign later
-"""class HTTPPaginator:
-    def __init__(self, *, session: ClientSession, response: ClientResponse, type: Literal["user", "gist", "repo"]):
-        self.__session = session
-        self.response = response
-
-        self.should_paginate = bool(self.response.headers.get("Link", False))
-
-        self.type = {
-            "user": User,
-            "gist": Gist,
-            "repo": Repository,
-        }[type]
-
-        self.pages = {}
-        self.is_exhausted = False
-        self.current_page = 1
-
-        self.parse_header(response)
-
-    async def fetch_page(self, link: str, /):
-        return await (await self.session.get(link)).json()
-
-    async def early_return(self):
-        # I don't rightly remember what this does differently, may have a good ol redesign later
-        return [self.target_type(data, self) for data in await self.response.json()]  # type: ignore
-
-    async def exhaust(self):
-        if self.should_paginate:
-            return await self.early_return()
-
-        out: List[APIType] = []
-        for page in range(1, self.max_page + 1):
-            result = await self.session.get(self.bare_link + str(page))
-            out.extend([self.target_type(item, self) for item in await result.json()])  # type: ignore
-
-        self.is_exhausted = True
-        return out
-
-    def parse_header(self, response: ClientResponse, /) -> None:
-        header = response.headers["Link"]
-
-        links = LINK_PARSING_RE.findall(header)
-
-        self.max_page = int(groups[1][1])
-
-        if int(response.headers["X-RateLimit-Remaining"]) < self.max_page:
-            raise WillExceedRatelimit(response, self.max_page)
-
-        self.bare_link = groups[0][0][:-1]"""
 
 
 class HTTPClient:
