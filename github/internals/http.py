@@ -223,7 +223,7 @@ class HTTPClient:
             raise ValueError("Client isnt started. Call HTTPClient.start before making HTTP requests.")
 
         async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
-            if 200 <= request.status <= 300:
+            if 200 <= request.status <= 299:
                 return await request.json()
 
             raise HTTPError(request)
