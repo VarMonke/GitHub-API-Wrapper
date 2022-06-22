@@ -1,7 +1,6 @@
 # == objects.py ==#
 from __future__ import annotations
 
-from base64 import b64encode
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from .objects import Object as APIObject
@@ -21,21 +20,6 @@ __all__: Tuple[str, ...] = (
     "Gist",
     "Organization",
 )
-
-
-def dt_formatter(time_str: Optional[str]) -> Optional[datetime]:
-    if time_str is not None:
-        return datetime.strptime(time_str, r"%Y-%m-%dT%H:%M:%SZ")
-
-    return None
-
-
-def repr_dt(_datetime: datetime) -> str:
-    return _datetime.strftime(r"%d-%m-%Y, %H:%M:%S")
-
-
-def bytes_to_b64(content) -> str:
-    return b64encode(content.encode("utf-8")).decode("ascii")
 
 
 # === User stuff ===#
