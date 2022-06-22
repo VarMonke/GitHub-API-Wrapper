@@ -137,7 +137,7 @@ class HTTPClient:
                     f" {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url},"
                     f" method: {params.method})"
                 )
-                now = dt.now(timezone.utc)
+                now = datetime.now(timezone.utc)
 
                 await asyncio.sleep(max((dt - now).total_seconds(), 0))
 
