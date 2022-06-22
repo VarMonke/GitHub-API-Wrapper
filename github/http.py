@@ -19,7 +19,7 @@ from .urls import *
 
 __all__: Tuple[str, ...] = (
     "Paginator",
-    "http",
+    "HTTPClient",
 )
 
 
@@ -132,7 +132,7 @@ class Paginator:
 # Commentnig this out for now, consider using TypeDict's instead in the future <3
 
 
-class http:
+class HTTPClient:
     def __init__(self, headers: Dict[str, Union[str, int]], auth: Union[aiohttp.BasicAuth, None]) -> None:
         if not headers.get("User-Agent"):
             headers["User-Agent"] = (

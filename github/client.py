@@ -23,7 +23,7 @@ from typing_extensions import Concatenate, ParamSpec, Self
 
 from . import exceptions
 from .cache import ObjectCache
-from .http import http
+from .http import HTTPClient
 from .objects import File, Gist, Issue, Organization, Repository, User
 
 __all__: Tuple[str, ...] = ("GHClient", "Client")
@@ -79,7 +79,7 @@ class GHClient:
             self.username = None
             self.__token = None
 
-        self.http = http(headers=custom_headers, auth=self.__auth)
+        self.http = HTTPClient(headers=custom_headers, auth=self.__auth)
 
         self._user_cache = ObjectCache[Any, User](user_cache_size)
         self._repo_cache = ObjectCache[Any, Repository](repo_cache_size)
@@ -162,13 +162,13 @@ class GHClient:
         if self.has_started:
             raise exceptions.AlreadyStarted
         if self.__auth:
-            self.http = await http(auth=self.__auth, headers=self._headers)
+            self.http = await HTTPClient(auth=self.__auth, headers=self._headers)
             try:
                 await self.http.get_self()
             except exceptions.InvalidToken as exc:
                 raise exceptions.InvalidToken from exc
         else:
-            self.http = await http(auth=None, headers=self._headers)
+            self.http = await HTTPClient(auth=None, headers=self._headers)
         self.has_started = True
         return self
 

@@ -6,7 +6,7 @@ from base64 import b64encode
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 if TYPE_CHECKING:
-    from .http import http
+    from .http import HTTPClient
 
 import io
 import os
@@ -46,7 +46,7 @@ class APIObject:
 
     __slots__: Tuple[str, ...] = ("_response", "_http")
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         self._http = _http
         self._response = response
 
@@ -63,7 +63,7 @@ class _BaseUser(APIObject):
         "id",
     )
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         self._http = _http
         self.login = response.get("login")
@@ -122,7 +122,7 @@ class User(_BaseUser):
         "created_at",
     )
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + _BaseUser.__slots__
         keys = {key: value for key, value in self._response.items() if key in tmp}
@@ -145,7 +145,7 @@ class PartialUser(_BaseUser):
         "avatar_url",
     ) + _BaseUser.__slots__
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         self.site_admin: Optional[str] = response.get("site_admin")
         self.html_url: Optional[str] = response.get("html_url")
@@ -212,7 +212,7 @@ class Repository(APIObject):
         "license",
     )
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key, value in self._response.items() if key in tmp}
@@ -322,7 +322,7 @@ class Issue(APIObject):
         "closed_by",
     )
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key, value in self._response.items() if key in tmp}
@@ -421,7 +421,7 @@ class Gist(APIObject):
         "truncated",
     )
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key, value in self._response.items() if key in tmp}
@@ -499,7 +499,7 @@ class Organization(APIObject):
         "avatar_url",
     )
 
-    def __init__(self, response: Dict[str, Any], _http: http) -> None:
+    def __init__(self, response: Dict[str, Any], _http: HTTPClient) -> None:
         super().__init__(response, _http)
         tmp = self.__slots__ + APIObject.__slots__
         keys = {key: value for key, value in self._response.items() if key in tmp}
