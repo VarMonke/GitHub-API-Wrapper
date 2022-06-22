@@ -1,24 +1,28 @@
-# == http.py ==#
-
 from __future__ import annotations
 
 import asyncio
+import logging
 import platform
-from .utils import human_readable_time_until
 import re
 import time
 from datetime import datetime, timezone
-from types import SimpleNamespace
-from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
-from aiohttp import ClientSession, BasicAuth, TraceRequestEndParams, TraceConfig
+from aiohttp import BasicAuth, ClientSession, TraceConfig
 from multidict import CIMultiDict
-from typing_extensions import Self
 
-from . import __version__
-from .errors import HTTPError
-from .types import SecurtiyAndAnalysis
-import  logging
+from github.utils import human_readable_time_until
+
+from .. import __version__
+from ..errors import HTTPError
+
+if TYPE_CHECKING:
+    from types import SimpleNamespace
+
+    from aiohttp import TraceRequestEndParams
+    from typing_extensions import Self
+
+    from ..types import SecurtiyAndAnalysis
 
 __all__: Tuple[str, ...] = (
     # "Paginator",
@@ -128,16 +132,18 @@ class HTTPClient:
         async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
             if (remaining := self._rates.remaining) and int(remaining) < 2:
                 dt = self._rates.reset_time
-                log.info(f"Ratelimit exceeded, trying again in {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url}, method: {params.method})")
+                log.info(
+                    "Ratelimit exceeded, trying again in"
+                    f" {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url},"
+                    f" method: {params.method})"
+                )
                 now = dt.now(timezone.utc)
 
                 await asyncio.sleep(max((dt - now).total_seconds(), 0))
 
         trace_config.on_request_start.append(on_request_start)
 
-        async def on_request_end(
-            _: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams
-        ) -> None:
+        async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
             """After-request hook to adjust remaining requests on this time frame."""
             headers = params.response.headers
 
@@ -148,6 +154,7 @@ class HTTPClient:
                 datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
                 datetime.now(timezone.utc),
             )
+
         trace_config.on_request_end.append(on_request_end)
 
         self.__session = ClientSession(
@@ -398,7 +405,7 @@ class HTTPClient:
         allow_forking: Optional[bool] = None,
     ):
         data = {}
-        
+
         if name:
             data["name"] = name
         if description:
@@ -623,7 +630,7 @@ class HTTPClient:
         is_template: Optional[bool] = None,
     ):
         data = {"name": name}
-        
+
         if description:
             data["description"] = description
         if homepage:
