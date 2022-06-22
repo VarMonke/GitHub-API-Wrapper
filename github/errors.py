@@ -41,4 +41,4 @@ class RatelimitReached(GitHubError):
         self.reset_time = reset_time
 
     def __str__(self) -> str:
-        return f"The ratelimit has been reached. You can try again in {self.reset_time}"
+        return f"The ratelimit has been reached. You can try again in {self.reset_time.strftime('%H:M:%S')}"

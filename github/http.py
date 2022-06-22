@@ -2,25 +2,29 @@
 
 from __future__ import annotations
 
+import asyncio
 import platform
 import re
 import time
 from datetime import datetime, timezone
 from types import SimpleNamespace
-from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union, Any
+from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 from aiohttp import ClientSession, BasicAuth, TraceRequestEndParams, TraceConfig
 from multidict import CIMultiDict
 from typing_extensions import Self
 
 from . import __version__
-from .errors import HTTPError, RatelimitReached
+from .errors import HTTPError
 from .types import SecurtiyAndAnalysis
+import  logging
 
 __all__: Tuple[str, ...] = (
     # "Paginator",
     "HTTPClient",
 )
+
+log = logging.getLogger("github")
 
 
 LINK_REGEX = re.compile(r"<(\S+(\S))>; rel=\"(\S+)\"")
@@ -90,7 +94,10 @@ class HTTPClient:
     __session: Optional[ClientSession]
 
     def __init__(
-        self, *, headers: Optional[Dict[str, Union[str, int]]] = None, auth: Optional[BasicAuth] = None
+        self,
+        *,
+        headers: Optional[Dict[str, Union[str, int]]] = None,
+        auth: Optional[BasicAuth] = None,
     ) -> None:
         if not headers:
             headers = {}
@@ -111,9 +118,14 @@ class HTTPClient:
     async def start(self) -> Self:
         trace_config = TraceConfig()
 
-        async def on_request_start(*_: Any) -> None:
+        async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
             if int(self._rates.remaining) < 2:
-                raise RatelimitReached(self._rates.reset_time)
+                dt = self._rates.reset_time
+                log.info(f"Ratelimit exceeded, trying again in {dt.strftime('%H:%M:%S')} (URL: {params.url}, method: {params.method})")
+                now = dt.now(timezone.utc)
+
+                await asyncio.sleep(max((dt - now).total_seconds(), 0))
+
         trace_config.on_request_start.append(on_request_start)
 
         async def on_request_end(
