@@ -1,15 +1,12 @@
 # == objects.py ==#
 from __future__ import annotations
 
-import pathlib
 from base64 import b64encode
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from .http import HTTPClient
 
-import io
-import os
 from datetime import datetime
 
 __all__: Tuple[str, ...] = (
