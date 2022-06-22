@@ -121,7 +121,7 @@ class HTTPClient:
         async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
             if int(self._rates.remaining) < 2:
                 dt = self._rates.reset_time
-                log.info(f"Ratelimit exceeded, trying again in {dt.strftime('%H:%M:%S')} (URL: {params.url}, method: {params.method})")
+                log.info(f"Ratelimit exceeded, trying again at {dt.strftime('%H:%M:%S')} (URL: {params.url}, method: {params.method})")
                 now = dt.now(timezone.utc)
 
                 await asyncio.sleep(max((dt - now).total_seconds(), 0))
@@ -201,7 +201,7 @@ class HTTPClient:
 
     async def _request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
         if not self.started:
-            raise None  # TODO: raise
+            raise Exception("Client isnt started. Call HTTPClient.start before making HTTP requests.")
 
         async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
             if 200 <= request.status <= 300:
