@@ -471,7 +471,7 @@ class HTTPClient:
         private: Optional[bool] = None,
     ):
         data = {
-            "name": str,
+            "name": name,
         }
 
         if owner:
