@@ -5,7 +5,7 @@ import logging
 import platform
 import time
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Optional, Union
 
 from aiohttp import ClientSession, TraceConfig
 
