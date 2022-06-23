@@ -44,7 +44,7 @@ class HTTPClient:
         headers: Optional[Dict[str, Union[str, int]]] = None,
         auth: Optional[BasicAuth] = None,
     ) -> Awaitable[HTTPClient]:
-        async def initialize() -> HTTPClient:
+        async def init() -> HTTPClient:
             self = super(HTTPClient, cls).__new__(cls)
 
             nonlocal headers
@@ -53,7 +53,7 @@ class HTTPClient:
 
             headers.setdefault(
                 "User-Agent",
-                "Github-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
+                "GitHub-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
                 f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
             )
 
@@ -104,7 +104,7 @@ class HTTPClient:
 
             return self
 
-        return initialize()
+        return init()
 
     async def __aenter__(self) -> Self:
         return self
