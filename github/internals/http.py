@@ -9,10 +9,9 @@ from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Op
 
 from aiohttp import ClientSession, TraceConfig
 
-from github.utils import human_readable_time_until
+from ..utils import human_readable_time_until, error_from_request
 
 from .. import __version__
-from ..errors import HTTPError
 
 if TYPE_CHECKING:
     from types import SimpleNamespace
@@ -132,7 +131,7 @@ class HTTPClient:
             if 200 <= request.status <= 299:
                 return await request.json()
 
-            raise HTTPError(request)
+            raise error_from_request(request)
 
     # === ROUTES === #
 

@@ -3,10 +3,14 @@ from __future__ import annotations
 from base64 import b64encode
 from typing import TYPE_CHECKING, Optional
 
+from .errors import HTTPError
+
 if TYPE_CHECKING:
     from datetime import datetime, timedelta
+    from aiohttp import ClientResponse
+    from .errors import BaseHTTPError
 
-__all__ = ("human_readable_time_until", "str_to_datetime", "repr_dt", "bytes_to_b64")
+__all__ = ("human_readable_time_until", "str_to_datetime", "repr_dt", "bytes_to_b64", "error_from_request")
 
 
 def human_readable_time_until(td: timedelta, /) -> str:
@@ -27,3 +31,9 @@ def repr_dt(time: datetime, /) -> str:
 
 def bytes_to_b64(content: str, /) -> str:
     return b64encode(content.encode("utf-8")).decode("ascii")
+
+
+def error_from_request(request: ClientResponse, /) -> BaseHTTPError:
+    # TODO: make errors specific
+    return HTTPError(request)
+
