@@ -67,7 +67,6 @@ class HTTPClient:
             @trace_config.on_request_start.append
             async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
                 if self.ratelimited:
-                    dt = self._rates.reset_time
                     log.info(
                         "Ratelimit exceeded, trying again in"
                         f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"  # type: ignore
@@ -75,8 +74,7 @@ class HTTPClient:
                     )
 
                     # TODO: I get about 3-4 hours of cooldown this might not be a good idea, might make this raise an error instead.
-                    now = datetime.now(timezone.utc)
-                    await asyncio.sleep(max((dt - now).total_seconds(), 0))
+                    await asyncio.sleep(max((self._rates.reset_time - datetime.now(timezone.utc)).total_seconds(), 0))
 
             @trace_config.on_request_end.append
             async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
