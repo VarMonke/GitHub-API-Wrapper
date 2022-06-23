@@ -73,9 +73,9 @@ class HTTPClient:
                         f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"  # type: ignore
                         f" method: {params.method})"
                     )
-                    # FIXME: probably broken
-                    now = datetime.now(timezone.utc)
 
+                    # TODO: I get about 3-4 hours of cooldown this might not be a good idea, might make this raise an error instead.
+                    now = datetime.now(timezone.utc)
                     await asyncio.sleep(max((dt - now).total_seconds(), 0))
 
             @trace_config.on_request_end.append
