@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from ..types import SecurtiyAndAnalysis
 
-__all__: Tuple[str, ...] = ("HTTPClient",)
+__all__ = ("HTTPClient",)
 
 log = logging.getLogger("github")
 
