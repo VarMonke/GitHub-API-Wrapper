@@ -67,12 +67,12 @@ class HTTPClient:
             trace_config = TraceConfig()
 
             @trace_config.on_request_start.append
-            async def on_request_start(session: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-                if (remaining := session._rates.remaining) and int(remaining) < 2:  # type: ignore
+            async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
+                if (remaining := self._rates.remaining) and int(remaining) < 2:  # type: ignore
                     dt = self._rates.reset_time
                     log.info(
                         "Ratelimit exceeded, trying again in"
-                        f" {human_readable_time_until(datetime.now(timezone.utc) - session._rates.reset_time)} (URL: {params.url},"  # type: ignore
+                        f" {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url},"  # type: ignore
                         f" method: {params.method})"
                     )
                     # FIXME: probably broken
@@ -81,11 +81,11 @@ class HTTPClient:
                     await asyncio.sleep(max((dt - now).total_seconds(), 0))
 
             @trace_config.on_request_end.append
-            async def on_request_end(session: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
+            async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
                 """After-request hook to adjust remaining requests on this time frame."""
                 headers = params.response.headers
 
-                session._rates = Ratelimit(
+                self._rates = Ratelimit(
                     headers["X-RateLimit-Remaining"],
                     headers["X-RateLimit-Used"],
                     headers["X-RateLimit-Limit"],
@@ -98,9 +98,6 @@ class HTTPClient:
                 auth=self.__auth,
                 trace_configs=[trace_config],
             )
-
-            if not hasattr(self.__session, "_rates"):
-                self.__session._rates = self._rates
 
             return self
 
