@@ -66,7 +66,7 @@ class HTTPClient:
 
             @trace_config.on_request_start.append
             async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-                if (remaining := self._rates.remaining) is not None and int(remaining) < 2:
+                if self.ratelimited:
                     dt = self._rates.reset_time
                     log.info(
                         "Ratelimit exceeded, trying again in"
@@ -108,6 +108,11 @@ class HTTPClient:
     async def __aexit__(self, *_) -> None:
         await self.__session.close()
 
+    @property
+    def ratelimited(self) -> bool:
+        remaining = self._rates.remaining
+        return remaining is not None and remaining < 2
+
     def data(self):
         # TODO: is this needed?
         # Returns session headers and auth.
@@ -117,7 +122,9 @@ class HTTPClient:
         last_ping = self._last_ping
 
         # If there was no ping or the last ping was more than 5 seconds ago.
-        if not last_ping or int(time.time()) > last_ping + 5 or self._rates.remaining < 2:
+        if not last_ping or time.monotonic() > last_ping + 5 or self.ratelimited:
+            self._last_ping = time.monotonic()
+
             start = time.monotonic()
             await self.request("GET")
             self._latency = time.monotonic() - start
