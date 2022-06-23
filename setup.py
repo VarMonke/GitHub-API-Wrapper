@@ -18,7 +18,7 @@ extras_require = {
 
 setup(
     name="github",
-    author="VarMonke & sudosnok",
+    author="VarMonke, sudosnok",
     url="https://github.com/VarMonke/Github-Api-Wrapper",
     version=re.search(r"\d[.]\d[.]\d", (Path("github") / "__init__.py").read_text())[0],
     packages=packages,

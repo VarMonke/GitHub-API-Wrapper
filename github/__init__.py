@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2022-present VarMonke & contributors
+Copyright (c) 2022-present VarMonke, sudosnok & contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,10 @@ SOFTWARE.
 """
 
 __title__ = "Github-Api-Wrapper"
-__author__ = "VarMonke"
+__authors__ = ("VarMonke", "sudosnok", "contributors")
 __version__ = "2.0a"
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2022-present VarMonke & sudosnok"
+__copyright__ = "Copyright (c) 2022-present VarMonke, sudosnok & contributors"
 
 from .errors import *
 from .internals import *
