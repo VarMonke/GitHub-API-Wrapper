@@ -7,7 +7,9 @@ from .errors import HTTPError
 
 if TYPE_CHECKING:
     from datetime import datetime, timedelta
+
     from aiohttp import ClientResponse
+
     from .errors import BaseHTTPError
 
 __all__ = ("human_readable_time_until", "str_to_datetime", "repr_dt", "bytes_to_b64", "error_from_request")
@@ -36,4 +38,3 @@ def bytes_to_b64(content: str, /) -> str:
 def error_from_request(request: ClientResponse, /) -> BaseHTTPError:
     # TODO: make errors specific
     return HTTPError(request)
-

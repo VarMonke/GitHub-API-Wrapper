@@ -9,9 +9,8 @@ from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Op
 
 from aiohttp import ClientSession, TraceConfig
 
-from ..utils import human_readable_time_until, error_from_request
-
 from .. import __version__
+from ..utils import error_from_request, human_readable_time_until
 
 if TYPE_CHECKING:
     from types import SimpleNamespace
