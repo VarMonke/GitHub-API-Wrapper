@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
-from aiohttp import BasicAuth, ClientSession, TraceConfig
+from aiohttp import ClientSession, TraceConfig
 
 from github.utils import human_readable_time_until
 
@@ -17,7 +17,7 @@ from ..errors import HTTPError
 if TYPE_CHECKING:
     from types import SimpleNamespace
 
-    from aiohttp import TraceRequestEndParams
+    from aiohttp import BasicAuth, TraceRequestEndParams
     from typing_extensions import Self
 
     from ..types import SecurtiyAndAnalysis
