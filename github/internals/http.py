@@ -88,7 +88,6 @@ class HTTPClient:
                     datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])).replace(tzinfo=timezone.utc),
                     datetime.now(timezone.utc),
                 )
-                print(repr(self._rates))
 
             self.__session = ClientSession(
                 headers=headers,
@@ -111,18 +110,22 @@ class HTTPClient:
         remaining = self._rates.remaining
         return remaining is not None and remaining < 2
 
-    async def latency(self) -> float:
-        last_ping = self._last_ping
+    @property
+    def latency(self) -> Awaitable[float]:
+        async def inner() -> float:
+            last_ping = self._last_ping
 
-        # If there was no ping or the last ping was more than 5 seconds ago.
-        if not last_ping or time.monotonic() > last_ping + 5 or self.ratelimited:
-            self._last_ping = time.monotonic()
+            # If there was no ping or the last ping was more than 5 seconds ago.
+            if not last_ping or time.monotonic() > last_ping + 5 or self.ratelimited:
+                self._last_ping = time.monotonic()
 
-            start = time.monotonic()
-            await self.request("GET")
-            self._latency = time.monotonic() - start
+                start = time.monotonic()
+                await self.request("GET")
+                self._latency = time.monotonic() - start
 
-        return self._latency
+            return self._latency
+
+        return inner()
 
     async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
         initialized = getattr(self, "_HTTPClient__session", False)
