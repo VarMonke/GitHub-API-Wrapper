@@ -28,16 +28,14 @@ log = logging.getLogger("github")
 
 
 class Ratelimit(NamedTuple):
-    remaining: Optional[str]
-    used: Optional[str]
-    total: Optional[str]
+    remaining: Optional[int]
+    used: Optional[int]
+    total: Optional[int]
     reset_time: Optional[datetime]
     last_request: Optional[datetime]
 
 
 class HTTPClient:
-    __session: Optional[ClientSession]
-
     def __new__(
         cls,
         *,
@@ -68,11 +66,11 @@ class HTTPClient:
 
             @trace_config.on_request_start.append
             async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-                if (remaining := self._rates.remaining) and int(remaining) < 2:  # type: ignore
+                if (remaining := self._rates.remaining) is not None and int(remaining) < 2:
                     dt = self._rates.reset_time
                     log.info(
                         "Ratelimit exceeded, trying again in"
-                        f" {human_readable_time_until(datetime.now(timezone.utc) - self._rates.reset_time)} (URL: {params.url},"  # type: ignore
+                        f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"  # type: ignore
                         f" method: {params.method})"
                     )
                     # FIXME: probably broken
@@ -86,16 +84,17 @@ class HTTPClient:
                 headers = params.response.headers
 
                 self._rates = Ratelimit(
-                    headers["X-RateLimit-Remaining"],
-                    headers["X-RateLimit-Used"],
-                    headers["X-RateLimit-Limit"],
-                    datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])),
+                    int(headers["X-RateLimit-Remaining"]),
+                    int(headers["X-RateLimit-Used"]),
+                    int(headers["X-RateLimit-Limit"]),
+                    datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])).replace(tzinfo=timezone.utc),
                     datetime.now(timezone.utc),
                 )
+                print(repr(self._rates))
 
             self.__session = ClientSession(
-                headers=self.__headers,
-                auth=self.__auth,
+                headers=headers,
+                auth=auth,
                 trace_configs=[trace_config],
             )
 
