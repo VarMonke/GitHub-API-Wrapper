@@ -120,19 +120,15 @@ class HTTPClient:
                 self._last_ping = time.monotonic()
 
                 start = time.monotonic()
-                await self.request("GET")
+                await self.request("GET", "/")
                 self._latency = time.monotonic() - start
 
             return self._latency
 
         return inner()
 
-    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str = "", /, **kwargs):
-        initialized = getattr(self, "_HTTPClient__session", False)
-        if not initialized:
-            raise ValueError("Client isnt initialized yet. Await the class before making HTTP requests.")
-
-        async with self.__session.request(method, f"https://api.github.com/{url.removeprefix('/')}", **kwargs) as request:
+    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, /, **kwargs):
+        async with self.__session.request(method, f"https://api.github.com{url}", **kwargs) as request:
             if 200 <= request.status <= 299:
                 return await request.json()
 
@@ -143,7 +139,7 @@ class HTTPClient:
     # Users
 
     async def get_self(self):
-        return await self.request("GET", "user")
+        return await self.request("GET", "/user")
 
     async def update_self(
         self,
@@ -176,7 +172,7 @@ class HTTPClient:
         if bio:
             data["bio"] = bio
 
-        return await self.request("PATCH", "user", json=data)
+        return await self.request("PATCH", "/user", json=data)
 
     async def list_users(self, *, since: Optional[int] = None, per_page: Optional[int] = None):
         data = {}
@@ -186,10 +182,10 @@ class HTTPClient:
         if per_page:
             data["per_page"] = per_page
 
-        return await self.request("GET", "users", json=data)
+        return await self.request("GET", "/users", json=data)
 
     async def get_user(self, *, username: str):
-        return await self.request("GET", f"users/{username}")
+        return await self.request("GET", f"/users/{username}")
 
     # TODO: /users/{username}/hovercard
     # idk what to name it
@@ -219,7 +215,7 @@ class HTTPClient:
         if page:
             data["page"] = page
 
-        return await self.request("GET", f"orgs/{org}/repos", json=data)
+        return await self.request("GET", f"/orgs/{org}/repos", json=data)
 
     async def create_org_repo(
         self,
@@ -286,10 +282,10 @@ class HTTPClient:
         if use_squash_pr_title_as_default:
             data["use_squash_pr_title_as_default"] = use_squash_pr_title_as_default
 
-        return await self.request("POST", f"orgs/{org}/repos", json=data)
+        return await self.request("POST", f"/orgs/{org}/repos", json=data)
 
     async def get_repo(self, *, owner: str, repo: str):
-        return await self.request("GET", f"repos/{owner}/{repo}")
+        return await self.request("GET", f"/repos/{owner}/{repo}")
 
     async def update_repo(
         self,
@@ -357,16 +353,16 @@ class HTTPClient:
         if allow_forking:
             data["allow_forking"] = allow_forking
 
-        return await self.request("PATCH", f"repos/{owner}/{repo}")
+        return await self.request("PATCH", f"/repos/{owner}/{repo}")
 
     async def delete_repo(self, *, owner: str, repo: str):
-        return await self.request("DELETE", f"repos/{owner}/{repo}")
+        return await self.request("DELETE", f"/repos/{owner}/{repo}")
 
     async def enable_repo_automated_security_fixes(self, *, owner: str, repo: str):
-        return await self.request("PUT", f"repos/{owner}/{repo}/automated-security-fixes")
+        return await self.request("PUT", f"/repos/{owner}/{repo}/automated-security-fixes")
 
     async def disable_repo_automated_security_fixes(self, *, owner: str, repo: str):
-        return await self.request("DELETE", f"repos/{owner}/{repo}/automated-security-fixes")
+        return await self.request("DELETE", f"/repos/{owner}/{repo}/automated-security-fixes")
 
     async def list_repo_codeowners_erros(self, *, owner: str, repo: str, ref: Optional[str] = None):
         params = {}
@@ -374,7 +370,7 @@ class HTTPClient:
         if ref:
             params["ref"] = ref
 
-        return await self.request("GET", f"repos/{owner}/{repo}/codeowners/errors", params=params)
+        return await self.request("GET", f"/repos/{owner}/{repo}/codeowners/errors", params=params)
 
     async def list_repo_contributors(
         self,
@@ -394,7 +390,7 @@ class HTTPClient:
         if page:
             params["page"] = page
 
-        return await self.request("GET", f"repos/{owner}/{repo}/contributors", params=params)
+        return await self.request("GET", f"/repos/{owner}/{repo}/contributors", params=params)
 
     async def create_repo_dispatch_event(
         self, *, owner: str, repo: str, event_name: str, client_payload: Optional[str] = None
@@ -406,10 +402,10 @@ class HTTPClient:
         if client_payload:
             data["client_payload"] = client_payload
 
-        return await self.request("POST", f"repos/{owner}/{repo}/dispatches", json=data)
+        return await self.request("POST", f"/repos/{owner}/{repo}/dispatches", json=data)
 
     async def list_repo_languages(self, *, owner: str, repo: str):
-        return await self.request("GET", f"repos/{owner}/{repo}/languages")
+        return await self.request("GET", f"/repos/{owner}/{repo}/languages")
 
     async def list_repo_tags(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
@@ -419,7 +415,7 @@ class HTTPClient:
         if page:
             params["page"] = page
 
-        return await self.request("GET", f"repos/{owner}/{repo}/tags", params=params)
+        return await self.request("GET", f"/repos/{owner}/{repo}/tags", params=params)
 
     async def list_repo_teams(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
@@ -429,7 +425,7 @@ class HTTPClient:
         if page:
             params["page"] = page
 
-        return await self.request("GET", f"repos/{owner}/{repo}/teams", params=params)
+        return await self.request("GET", f"/repos/{owner}/{repo}/teams", params=params)
 
     async def get_all_repo_topic(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
@@ -439,10 +435,10 @@ class HTTPClient:
         if page:
             params["page"] = page
 
-        return await self.request("GET", f"repos/{owner}/{repo}/topics", params=params)
+        return await self.request("GET", f"/repos/{owner}/{repo}/topics", params=params)
 
     async def replace_all_repo_topics(self, *, owner: str, repo: str, names: List[str]):
-        return await self.request("PUT", f"repos/{owner}/{repo}/topics", json={"names": names})
+        return await self.request("PUT", f"/repos/{owner}/{repo}/topics", json={"names": names})
 
     async def transfer_repo(self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None):
         data = {
@@ -452,16 +448,16 @@ class HTTPClient:
         if team_ids:
             data["team_ids"] = team_ids
 
-        return await self.request("POST", f"repos/{owner}/{repo}/transfer", json=data)
+        return await self.request("POST", f"/repos/{owner}/{repo}/transfer", json=data)
 
     async def check_repo_vulnerability_alerts_enabled(self, *, owner: str, repo: str):
-        return await self.request("GET", f"repos/{owner}/{repo}/vulnerability-alerts")
+        return await self.request("GET", f"/repos/{owner}/{repo}/vulnerability-alerts")
 
     async def enable_repo_vulnerability_alerts(self, *, owner: str, repo: str):
-        return await self.request("PUT", f"repos/{owner}/{repo}/vulnerability-alerts")
+        return await self.request("PUT", f"/repos/{owner}/{repo}/vulnerability-alerts")
 
     async def disable_repo_vulnerability_alerts(self, *, owner: str, repo: str):
-        return await self.request("DELETE", f"repos/{owner}/{repo}/vulnerability-alerts")
+        return await self.request("DELETE", f"/repos/{owner}/{repo}/vulnerability-alerts")
 
     async def create_repo_using_template(
         self,
@@ -484,10 +480,15 @@ class HTTPClient:
         if private:
             data["private"] = private
 
-        return await self.request("POST", f"repos/{template_owner}/{template_repo}/generate", json=data)
+        return await self.request("POST", f"/repos/{template_owner}/{template_repo}/generate", json=data)
 
     async def list_public_repos(self, *, since: Optional[int] = None):
-        return await self.request("GET", "repositories", params={"since": since})
+        params = {}
+
+        if since:
+            params["since"] = since
+
+        return await self.request("GET", "/repositories", params=params)
 
     async def list_self_repos(
         self,
@@ -523,7 +524,7 @@ class HTTPClient:
         if before:
             data["before"] = before
 
-        return self.request("POST", "user/repos", json=data)
+        return self.request("POST", "/user/repos", json=data)
 
     async def create_repo(
         self,
@@ -586,7 +587,7 @@ class HTTPClient:
         if is_template:
             data["is_template"] = is_template
 
-        return await self.request("POST", "user/repos", json=data)
+        return await self.request("POST", "/user/repos", json=data)
 
     async def list_user_repos(
         self,
@@ -611,4 +612,4 @@ class HTTPClient:
         if page:
             data["page"] = page
 
-        return await self.request("GET", f"users/{username}/repos", json=data)
+        return await self.request("GET", f"/users/{username}/repos", json=data)
