@@ -111,11 +111,6 @@ class HTTPClient:
         remaining = self._rates.remaining
         return remaining is not None and remaining < 2
 
-    def data(self):
-        # TODO: is this needed?
-        # Returns session headers and auth.
-        return {"headers": dict(self.__session.headers), "auth": self.__auth}
-
     async def latency(self) -> float:
         last_ping = self._last_ping
 
