@@ -15,12 +15,12 @@ from .. import __version__
 from ..utils import error_from_request, human_readable_time_until
 
 if TYPE_CHECKING:
-    from ..objects import File
     from types import SimpleNamespace
 
     from aiohttp import BasicAuth, TraceRequestEndParams, TraceRequestStartParams
     from typing_extensions import Self
 
+    from ..objects import File
     from ..types import SecurtiyAndAnalysis
 
 log = logging.getLogger("github")
@@ -425,7 +425,9 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/tags", params=params)
 
-    async def list_teams_for_repo(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def list_teams_for_repo(
+        self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None
+    ):
         params = {}
 
         if per_page:
@@ -435,7 +437,9 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/teams", params=params)
 
-    async def get_all_topic_for_repo(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def get_all_topic_for_repo(
+        self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None
+    ):
         params = {}
 
         if per_page:
@@ -625,11 +629,7 @@ class HTTPClient:
     # === GISTS === #
 
     async def list_logged_in_user_gists(
-        self,
-        *,
-        since: Optional[str] = None,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None
+        self, *, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
     ):
         params = {}
 
@@ -642,13 +642,7 @@ class HTTPClient:
 
         return await self.request("GET", "/gists", params=params)
 
-    async def create_gist(
-        self,
-        *,
-        description: Optional[str] = None,
-        files: List[File],
-        public: Optional[bool] = None
-    ):
+    async def create_gist(self, *, description: Optional[str] = None, files: List[File], public: Optional[bool] = None):
         data = {
             files: {f.name: f.read() for f in files},
         }
@@ -657,15 +651,11 @@ class HTTPClient:
             data["description"] = description
         if public:
             data["public"] = public
-        
+
         return await self.request("POST", "/gists", json=data)
 
     async def list_public_gists(
-        self,
-        *,
-        since: Optional[str] = None,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None
+        self, *, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
     ):
         params = {}
 
@@ -679,11 +669,7 @@ class HTTPClient:
         return await self.request("GET", "/gists/public", params=params)
 
     async def list_starred_gists(
-        self,
-        *,
-        since: Optional[str] = None,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None
+        self, *, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
     ):
         params = {}
 
@@ -696,22 +682,12 @@ class HTTPClient:
 
         return await self.request("GET", "/gists/starred", params=params)
 
-    async def get_gist(
-        self,
-        *,
-        gist_id: str
-    ):
+    async def get_gist(self, *, gist_id: str):
         return await self.request("GET", f"/gists/{gist_id}")
 
-    async def update_gist(
-        self,
-        *,
-        gist_id: str,
-        description: Optional[str] = None,
-        files: List[File] = None
-    ):
+    async def update_gist(self, *, gist_id: str, description: Optional[str] = None, files: List[File] = None):
         data = {
-            "files": {f.name: f.read() for f in files}
+            "files": {f.name: f.read() for f in files},
         }
 
         if description:
@@ -719,88 +695,46 @@ class HTTPClient:
 
         return await self.request("PATCH", f"/gists/{gist_id}")
 
-    async def delete_gist(
-        self,
-        *,
-        gist_id: str
-    ):
+    async def delete_gist(self, *, gist_id: str):
         return await self.request("DELETE", f"/gists/{gist_id}")
 
-    async def list_commits_for_gist(
-        self,
-        *,
-        gist_id: str,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None
-    ):
+    async def list_commits_for_gist(self, *, gist_id: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
 
         if per_page:
             params["per_page"] = per_page
         if page:
             params["page"] = page
-        
+
         return await self.request("GET", f"/gists/{gist_id}/commits", params=params)
 
-    async def list_forks_for_gist(
-        self,
-        *,
-        gist_id: str,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None
-    ):
+    async def list_forks_for_gist(self, *, gist_id: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
 
         if per_page:
             params["per_page"] = per_page
         if page:
             params["page"] = page
-        
+
         return await self.request("GET", f"/gists/{gist_id}/forks", params=params)
 
-    async def fork_gist(
-        self,
-        *,
-        gist_id: str
-    ):
+    async def fork_gist(self, *, gist_id: str):
         return await self.request("POST", f"/gists/{gist_id}/forks")
 
-    async def check_starred_for_gist(
-        self,
-        *,
-        gist_id: str
-    ):
+    async def check_starred_for_gist(self, *, gist_id: str):
         return await self.request("GET", f"/gists/{gist_id}/star")
 
-    async def star_gist(
-        self,
-        *,
-        gist_id: str
-    ):
+    async def star_gist(self, *, gist_id: str):
         return await self.request("PUT", f"/gists/{gist_id}/star")
 
-    async def unstar_gist(
-        self,
-        *,
-        gist_id: str
-    ):
+    async def unstar_gist(self, *, gist_id: str):
         return await self.request("DELETE", f"/gists/{gist_id}/star")
 
-    async def get_revision_for_gist(
-        self,
-        *,
-        gist_id: str,
-        sha: str
-    ):
+    async def get_revision_for_gist(self, *, gist_id: str, sha: str):
         return await self.request("GET", f"/gists/{gist_id}/{sha}")
 
     async def list_user_gists(
-        self,
-        *,
-        username: str,
-        since: Optional[str] = None,
-        per_page: Optional[int] = None,
-        page: Optional[int] = None
+        self, *, username: str, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
     ):
         params = {}
 
