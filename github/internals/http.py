@@ -15,7 +15,7 @@ from ..utils import error_from_request, human_readable_time_until
 if TYPE_CHECKING:
     from types import SimpleNamespace
 
-    from aiohttp import BasicAuth, TraceRequestEndParams
+    from aiohttp import BasicAuth, TraceRequestEndParams, TraceRequestStartParams
     from typing_extensions import Self
 
     from ..types import SecurtiyAndAnalysis
@@ -34,68 +34,77 @@ class Ratelimit(NamedTuple):
 
 
 class HTTPClient:
+    __session: ClientSession
+    _rates: Ratelimit
+
     def __new__(
         cls,
         *,
         headers: Optional[Dict[str, Union[str, int]]] = None,
         auth: Optional[BasicAuth] = None,
-    ) -> Awaitable[HTTPClient]:
-        async def init() -> HTTPClient:
-            self = super(HTTPClient, cls).__new__(cls)
+    ) -> Awaitable[Self]:
+        # Basically async def __init__
+        return cls.__async_init()
 
-            nonlocal headers
-            if not headers:
-                headers = {}
+    @classmethod
+    async def __async_init(
+        cls,
+        *,
+        headers: Optional[Dict[str, Union[str, int]]] = None,
+        auth: Optional[BasicAuth] = None,
+    ) -> Self:
+        self = super(cls, cls).__new__(cls)
 
-            headers.setdefault(
-                "User-Agent",
-                "GitHub-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
-                f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
-            )
+        if not headers:
+            headers = {}
 
-            self._rates = Ratelimit(None, None, None, None, None)
-            self.__headers = headers
-            self.__auth = auth
+        headers.setdefault(
+            "User-Agent",
+            "GitHub-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
+            f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
+        )
 
-            self._last_ping = 0
-            self._latency = 0
+        self._rates = Ratelimit(None, None, None, None, None)
+        self.__headers = headers
+        self.__auth = auth
 
-            trace_config = TraceConfig()
+        self._last_ping = 0
+        self._latency = 0
 
-            @trace_config.on_request_start.append
-            async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-                if self.ratelimited:
-                    log.info(
-                        "Ratelimit exceeded, trying again in"
-                        f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"  # type: ignore
-                        f" method: {params.method})"
-                    )
+        trace_config = TraceConfig()
 
-                    # TODO: I get about 3-4 hours of cooldown this might not be a good idea, might make this raise an error instead.
-                    await asyncio.sleep(max((self._rates.reset_time - datetime.now(timezone.utc)).total_seconds(), 0))
-
-            @trace_config.on_request_end.append
-            async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
-                """After-request hook to adjust remaining requests on this time frame."""
-                headers = params.response.headers
-
-                self._rates = Ratelimit(
-                    int(headers["X-RateLimit-Remaining"]),
-                    int(headers["X-RateLimit-Used"]),
-                    int(headers["X-RateLimit-Limit"]),
-                    datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])).replace(tzinfo=timezone.utc),
-                    datetime.now(timezone.utc),
+        @trace_config.on_request_start.append
+        async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestStartParams) -> None:
+            if self.ratelimited:
+                log.info(
+                    "Ratelimit exceeded, trying again in"
+                    f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"  # type: ignore
+                    f" method: {params.method})"
                 )
 
-            self.__session = ClientSession(
-                headers=headers,
-                auth=auth,
-                trace_configs=[trace_config],
+                # TODO: I get about 3-4 hours of cooldown this might not be a good idea, might make this raise an error instead.
+                await asyncio.sleep(max((self._rates.reset_time - datetime.now(timezone.utc)).total_seconds(), 0))
+
+        @trace_config.on_request_end.append
+        async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
+            """After-request hook to adjust remaining requests on this time frame."""
+            headers = params.response.headers
+
+            self._rates = Ratelimit(
+                int(headers["X-RateLimit-Remaining"]),
+                int(headers["X-RateLimit-Used"]),
+                int(headers["X-RateLimit-Limit"]),
+                datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])).replace(tzinfo=timezone.utc),
+                datetime.now(timezone.utc),
             )
 
-            return self
+        self.__session = ClientSession(
+            headers=headers,
+            auth=auth,
+            trace_configs=[trace_config],
+        )
 
-        return init()
+        return self
 
     async def __aenter__(self) -> Self:
         return self
@@ -125,8 +134,8 @@ class HTTPClient:
 
         return inner()
 
-    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, /, **kwargs):
-        async with self.__session.request(method, f"https://api.github.com{url}", **kwargs) as request:
+    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], path: str, /, **kwargs):
+        async with self.__session.request(method, f"https://api.github.com{path}", **kwargs) as request:
             if 200 <= request.status <= 299:
                 return await request.json()
 
