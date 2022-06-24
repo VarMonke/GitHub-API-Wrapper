@@ -4,7 +4,7 @@ on: [ pull_request, push ]
 
 jobs:
   build:
-    if: github.event.pull_request.user.type != 'Bot'
+    if: github.event.pull_request.user.type != "Bot"
     runs-on: ubuntu-latest
     strategy:
       matrix:
