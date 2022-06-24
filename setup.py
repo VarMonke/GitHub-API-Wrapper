@@ -19,12 +19,12 @@ extras_require = {
 setup(
     name="github",
     author="VarMonke, sudosnok",
-    url="https://github.com/VarMonke/Github-Api-Wrapper",
+    url="https://github.com/Varmonke/GitHub-API-Wrapper",
     version=re.search(r"\d[.]\d[.]\d", (Path("github") / "__init__.py").read_text())[0],
     packages=packages,
     license="MIT",
     description="An asynchronous python wrapper around the GitHub API",
-    long_description=Path("README.rst").read_text(),
+    long_description=Path("README.md").read_text(),
     install_requires=Path("requirements.txt").read_text().splitlines(),
     python_requires=">=3.8.0",
 )

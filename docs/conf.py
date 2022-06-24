@@ -38,7 +38,7 @@ autodoc_typehints = "none"
 # napoleon_attr_annotations = False
 
 extlinks = {
-    "issue": ("https://github.com/VarMonke/Github-Api-Wrapper/issues/%s", "GH-"),
+    "issue": ("https://github.com/Varmonke/GitHub-API-Wrapper/issues/%s", "GH-"),
 }
 
 # Links used for cross-referencing stuff in other documentation
@@ -68,7 +68,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "Github-API-Wrapper"
+project = "github-wrapper"
 copyright = "2022-present, VarMonke, sudosnok & contributors"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -163,9 +163,9 @@ html_context = {
 
 resource_links = {
     "discord": "https://discord.gg/W2SDTtMrZA",
-    "issues": "https://github.com/VarMonke/Github-Api-Wrapper/issues",
-    "discussions": "https://github.com/VarMonke/Github-Api-Wrapper/discussions",
-    "examples": f"https://github.com/VarMonke/Github-Api-Wrapper/examples",
+    "issues": "https://github.com/Varmonke/GitHub-API-Wrapper/issues",
+    "discussions": "https://github.com/Varmonke/GitHub-API-Wrapper/discussions",
+    "examples": f"https://github.com/Varmonke/GitHub-API-Wrapper/examples",
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -261,7 +261,7 @@ html_search_scorer = "_static/scorer.js"
 html_js_files = ["custom.js", "settings.js", "copy.js", "sidebar.js"]
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "Github-API-Wrapper.doc"
+htmlhelp_basename = "github-wrapper.doc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -282,8 +282,8 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "Github-API-Wrapper.tex",
-        "Github-API-Wrapper Documentation",
+        "github-wrapper.tex",
+        "github-wrapper Documentation",
         "VarMonke, sudosnok & contributors",
         "manual",
     ),
@@ -317,8 +317,8 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        "Github-API-Wrapper",
-        "Github-API-Wrapper Documentation",
+        "github-wrapper",
+        "github-wrapper Documentation",
         ["VarMonke, sudosnok & contributors"],
         1,
     )
@@ -336,10 +336,10 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        "Github-API-Wrapper",
-        "Github-API-Wrapper Documentation",
+        "github-wrapper",
+        "github-wrapper Documentation",
         "VarMonke & sudosnok",
-        "Github-API-Wrapper",
+        "github-wrapper",
         "One line description of project.",
         "Miscellaneous",
     ),

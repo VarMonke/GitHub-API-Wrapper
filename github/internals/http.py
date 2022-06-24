@@ -116,7 +116,7 @@ class HTTPClient:
 
         headers.setdefault(
             "User-Agent",
-            "GitHub-API-Wrapper (https://github.com/VarMonke/Github-Api-Wrapper) @"
+            "github-wrapper (https://github.com/Varmonke/GitHub-API-Wrapper) @"
             f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
         )
 

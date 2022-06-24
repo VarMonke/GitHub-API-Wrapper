@@ -17,10 +17,10 @@ To install the library, run the following command:
 
 ```bash
 # On Linux or MacOS
-python3 -m pip install -U git+https://github.com/VarMonke/Github-Api-Wrapper
+python3 -m pip install -U git+https://github.com/Varmonke/GitHub-API-Wrapper
 
 # On Windows
-py -m pip install -U git+https://github.com/VarMonke/Github-Api-Wrapper
+py -m pip install -U git+https://github.com/Varmonke/GitHub-API-Wrapper
 ```
   
 <!-- ## Quick Example

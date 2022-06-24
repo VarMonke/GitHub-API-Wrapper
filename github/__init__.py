@@ -23,7 +23,7 @@ SOFTWARE.
 
 """
 
-__title__ = "Github-Api-Wrapper"
+__title__ = "github-wrapper"
 __authors__ = ("VarMonke", "sudosnok", "contributors")
 __version__ = "2.0a"
 __license__ = "MIT"
