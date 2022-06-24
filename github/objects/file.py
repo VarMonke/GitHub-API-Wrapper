@@ -8,17 +8,19 @@ from typing import Union
 
 class File:
     def __init__(self, file: Union[str, StringIO, BytesIO], /, *, filename: str) -> None:
-        self.file = file
+        self._file = file
         self.name = filename
 
     def read(self) -> str:
-        if isinstance(self.file, BytesIO):
-            return self.file.read().decode("utf-8")
+        f = self._file
 
-        if isinstance(self.file, StringIO):
-            return self.file.getvalue()
+        if isinstance(f, BytesIO):
+            return f.read().decode("utf-8")
 
-        if os.path.exists(self.file):
-            return Path(self.file).read_text()
+        if isinstance(f, StringIO):
+            return f.getvalue()
 
-        return self.file
+        if os.path.exists(f):
+            return Path(f).read_text()
+
+        return f
