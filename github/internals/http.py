@@ -146,10 +146,10 @@ class HTTPClient:
 
     # === USERS === #
 
-    async def get_self(self):
+    async def get_logged_in_user(self):
         return await self.request("GET", "/user")
 
-    async def update_self(
+    async def update_logged_in_user(
         self,
         *,
         name: Optional[str] = None,
@@ -190,7 +190,7 @@ class HTTPClient:
         if per_page:
             params["per_page"] = per_page
 
-        return await self.request("GET", "/users", params=data)
+        return await self.request("GET", "/users", params=params)
 
     async def get_user(self, *, username: str):
         return await self.request("GET", f"/users/{username}")
@@ -223,7 +223,7 @@ class HTTPClient:
         if page:
             params["page"] = page
 
-        return await self.request("GET", f"/orgs/{org}/repos", params=data)
+        return await self.request("GET", f"/orgs/{org}/repos", params=params)
 
     async def create_org_repo(
         self,
@@ -366,13 +366,13 @@ class HTTPClient:
     async def delete_repo(self, *, owner: str, repo: str):
         return await self.request("DELETE", f"/repos/{owner}/{repo}")
 
-    async def enable_repo_automated_security_fixes(self, *, owner: str, repo: str):
+    async def enable_automated_security_fixes_for_repo(self, *, owner: str, repo: str):
         return await self.request("PUT", f"/repos/{owner}/{repo}/automated-security-fixes")
 
-    async def disable_repo_automated_security_fixes(self, *, owner: str, repo: str):
+    async def disable_automated_security_fixes_for_repo(self, *, owner: str, repo: str):
         return await self.request("DELETE", f"/repos/{owner}/{repo}/automated-security-fixes")
 
-    async def list_repo_codeowners_erros(self, *, owner: str, repo: str, ref: Optional[str] = None):
+    async def list_codeowners_erros_for_repo(self, *, owner: str, repo: str, ref: Optional[str] = None):
         params = {}
 
         if ref:
@@ -380,7 +380,7 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/codeowners/errors", params=params)
 
-    async def list_repo_contributors(
+    async def list_contributors_for_repo(
         self,
         *,
         owner: str,
@@ -400,7 +400,7 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/contributors", params=params)
 
-    async def create_repo_dispatch_event(
+    async def create_dispatch_event_for_repo(
         self, *, owner: str, repo: str, event_name: str, client_payload: Optional[str] = None
     ):
         data = {
@@ -412,10 +412,10 @@ class HTTPClient:
 
         return await self.request("POST", f"/repos/{owner}/{repo}/dispatches", json=data)
 
-    async def list_repo_languages(self, *, owner: str, repo: str):
+    async def list_repo_languages_for_repo(self, *, owner: str, repo: str):
         return await self.request("GET", f"/repos/{owner}/{repo}/languages")
 
-    async def list_repo_tags(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def list_tags_for_repo(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
 
         if per_page:
@@ -425,7 +425,7 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/tags", params=params)
 
-    async def list_repo_teams(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def list_teams_for_repo(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
 
         if per_page:
@@ -435,7 +435,7 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/teams", params=params)
 
-    async def get_all_repo_topic(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def get_all_topic_for_repo(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
         params = {}
 
         if per_page:
@@ -445,7 +445,7 @@ class HTTPClient:
 
         return await self.request("GET", f"/repos/{owner}/{repo}/topics", params=params)
 
-    async def replace_all_repo_topics(self, *, owner: str, repo: str, names: List[str]):
+    async def replace_all_topics_for_repo(self, *, owner: str, repo: str, names: List[str]):
         return await self.request("PUT", f"/repos/{owner}/{repo}/topics", json={"names": names})
 
     async def transfer_repo(self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None):
@@ -458,16 +458,16 @@ class HTTPClient:
 
         return await self.request("POST", f"/repos/{owner}/{repo}/transfer", json=data)
 
-    async def check_repo_vulnerability_alerts_enabled(self, *, owner: str, repo: str):
+    async def check_vulnerability_alerts_enabled_for_repo(self, *, owner: str, repo: str):
         return await self.request("GET", f"/repos/{owner}/{repo}/vulnerability-alerts")
 
-    async def enable_repo_vulnerability_alerts(self, *, owner: str, repo: str):
+    async def enable_vulnerability_alerts_for_repo(self, *, owner: str, repo: str):
         return await self.request("PUT", f"/repos/{owner}/{repo}/vulnerability-alerts")
 
-    async def disable_repo_vulnerability_alerts(self, *, owner: str, repo: str):
+    async def disable_vulnerability_alerts_for_repo(self, *, owner: str, repo: str):
         return await self.request("DELETE", f"/repos/{owner}/{repo}/vulnerability-alerts")
 
-    async def create_repo_using_template(
+    async def create_repo_using_template_repo(
         self,
         *,
         template_owner: str,
@@ -498,7 +498,7 @@ class HTTPClient:
 
         return await self.request("GET", "/repositories", params=params)
 
-    async def list_self_repos(
+    async def list_logged_in_user_repos(
         self,
         *,
         visibility: Optional[Literal["all", "private", "public"]] = None,
@@ -620,11 +620,11 @@ class HTTPClient:
         if page:
             params["page"] = page
 
-        return await self.request("GET", f"/users/{username}/repos", params=data)
+        return await self.request("GET", f"/users/{username}/repos", params=params)
 
     # === GISTS === #
 
-    async def list_self_gists(
+    async def list_logged_in_user_gists(
         self,
         *,
         since: Optional[str] = None,
@@ -650,7 +650,7 @@ class HTTPClient:
         public: Optional[bool] = None
     ):
         data = {
-            files: {f.name: f.read() for file in files},
+            files: {f.name: f.read() for f in files},
         }
 
         if description:
@@ -711,7 +711,7 @@ class HTTPClient:
         files: List[File] = None
     ):
         data = {
-            "files": {file.name: file.read() for file in files}
+            "files": {f.name: f.read() for f in files}
         }
 
         if description:
@@ -726,7 +726,7 @@ class HTTPClient:
     ):
         return await self.request("DELETE", f"/gists/{gist_id}")
 
-    async def list_gist_commits(
+    async def list_commits_for_gist(
         self,
         *,
         gist_id: str,
@@ -742,7 +742,7 @@ class HTTPClient:
         
         return await self.request("GET", f"/gists/{gist_id}/commits", params=params)
 
-    async def list_gist_forks(
+    async def list_forks_for_gist(
         self,
         *,
         gist_id: str,
@@ -765,7 +765,7 @@ class HTTPClient:
     ):
         return await self.request("POST", f"/gists/{gist_id}/forks")
 
-    async def check_gist_starred(
+    async def check_starred_for_gist(
         self,
         *,
         gist_id: str
@@ -779,7 +779,6 @@ class HTTPClient:
     ):
         return await self.request("PUT", f"/gists/{gist_id}/star")
 
-
     async def unstar_gist(
         self,
         *,
@@ -787,7 +786,7 @@ class HTTPClient:
     ):
         return await self.request("DELETE", f"/gists/{gist_id}/star")
 
-    async def get_gist_revision(
+    async def get_revision_for_gist(
         self,
         *,
         gist_id: str,
