@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__all__ = ("HTTPClient",)
+
 import asyncio
 import logging
 import platform
@@ -19,8 +21,6 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
     from ..types import SecurtiyAndAnalysis
-
-__all__ = ("HTTPClient",)
 
 log = logging.getLogger("github")
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__all__ = ("Object",)
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

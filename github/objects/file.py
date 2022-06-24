@@ -1,9 +1,9 @@
+__all__ = ("File",)
+
 import os
 from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Union
-
-__all__ = ("File",)
 
 
 class File:
