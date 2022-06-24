@@ -781,15 +781,12 @@ class HTTPClient:
     async def update_gist(
         self, *, gist_id: str, description: Optional[str] = None, files: Optional[List[File]] = None
     ):
-        if not files:
-            files = []
-
-        data: Dict[str, Union[str, Dict[str, str]]] = {
-            "files": {f.name: f.read() for f in files},
-        }
+        data = {}
 
         if description:
             data["description"] = description
+        if files:
+            data["files"] = {f.name: f.read() for f in files}
 
         return await self.request("PATCH", f"/gists/{gist_id}")
 
