@@ -64,7 +64,8 @@ def add_builders(app):
         pass
     else:
         injected_mro = tuple(
-            base if base is not StandaloneHTMLBuilder else DPYStandaloneHTMLBuilder for base in original.mro()[1:]
+            base if base is not StandaloneHTMLBuilder else DPYStandaloneHTMLBuilder
+            for base in original.mro()[1:]
         )
         new_builder = type(original.__name__, injected_mro, {"name": "readthedocs"})
         app.set_translator("readthedocs", DPYHTML5Translator, override=True)

@@ -49,7 +49,9 @@ class DetailsDirective(Directive):
 
         if self.arguments:
             summary_node = summary(self.arguments[0], **self.options)
-            summary_node.source, summary_node.line = self.state_machine.get_source_and_line(self.lineno)
+            summary_node.source, summary_node.line = self.state_machine.get_source_and_line(
+                self.lineno
+            )
             node += summary_node
 
         self.state.nested_parse(self.content, self.content_offset, node)

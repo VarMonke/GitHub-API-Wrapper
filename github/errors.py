@@ -30,8 +30,8 @@ class HTTPError(BaseHTTPError):
 
     def __str__(self) -> str:
         return (
-            f"An HTTP error with the code {self.code} has occured while trying to do a {self.method} request to the URL"
-            f" {self.url}"
+            f"An HTTP error with the code {self.code} has occured while trying to do a"
+            f" {self.method} request to the URL {self.url}"
         )
 
 

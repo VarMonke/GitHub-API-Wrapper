@@ -1,10 +1,10 @@
 [tool.black]
-line-length = 125
+line-length = 100
 preview = true  # better formatting basically
 
 [tool.isort]
 py_version = 38
-line_length = 125
+line_length = 100
 combine_as_imports = true
 combine_star = true
 
@@ -12,9 +12,6 @@ combine_star = true
 pythonVersion = "3.8"
 include = [
     "github",
-    "github/internals",
-    "github/types",
-    "github/objects"
 ]
 exclude = [
     "**/__pycache__",

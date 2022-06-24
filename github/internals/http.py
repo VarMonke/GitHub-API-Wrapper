@@ -130,19 +130,25 @@ class HTTPClient:
         trace_config = TraceConfig()
 
         @trace_config.on_request_start.append
-        async def on_request_start(_: ClientSession, __: SimpleNamespace, params: TraceRequestStartParams) -> None:
+        async def on_request_start(
+            _: ClientSession, __: SimpleNamespace, params: TraceRequestStartParams
+        ) -> None:
             if self.ratelimited:
                 log.info(
                     "Ratelimit exceeded, trying again in"
-                    f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"
-                    f" method: {params.method})"
+                    f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL:"
+                    f" {params.url}, method: {params.method})"
                 )
 
                 # TODO: I get about 3-4 hours of cooldown this might not be a good idea, might make this raise an error instead.
-                await asyncio.sleep(max((self._rates.reset_time - datetime.now(timezone.utc)).total_seconds(), 0))
+                await asyncio.sleep(
+                    max((self._rates.reset_time - datetime.now(timezone.utc)).total_seconds(), 0)
+                )
 
         @trace_config.on_request_end.append
-        async def on_request_end(_: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams) -> None:
+        async def on_request_end(
+            _: ClientSession, __: SimpleNamespace, params: TraceRequestEndParams
+        ) -> None:
             """After-request hook to adjust remaining requests on this time frame."""
             headers = params.response.headers
 
@@ -150,7 +156,9 @@ class HTTPClient:
                 int(headers["X-RateLimit-Remaining"]),
                 int(headers["X-RateLimit-Used"]),
                 int(headers["X-RateLimit-Limit"]),
-                datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])).replace(tzinfo=timezone.utc),
+                datetime.fromtimestamp(int(headers["X-RateLimit-Reset"])).replace(
+                    tzinfo=timezone.utc
+                ),
                 datetime.now(timezone.utc),
             )
 
@@ -190,8 +198,12 @@ class HTTPClient:
 
         return inner()
 
-    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], path: str, /, **kwargs: Any):
-        async with self.__session.request(method, f"https://api.github.com{path}", **kwargs) as request:
+    async def request(
+        self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], path: str, /, **kwargs: Any
+    ):
+        async with self.__session.request(
+            method, f"https://api.github.com{path}", **kwargs
+        ) as request:
             if 200 <= request.status <= 299:
                 return await request.json()
 
@@ -259,7 +271,9 @@ class HTTPClient:
         self,
         *,
         org: str,
-        type: Optional[Literal["all", "public", "private", "forks", "sources", "member", "internal"]] = None,
+        type: Optional[
+            Literal["all", "public", "private", "forks", "sources", "member", "internal"]
+        ] = None,
         sort: Optional[Literal["created", "updated", "pushed", "full_name"]] = None,
         direction: Optional[Literal["asc", "desc"]] = None,
         per_page: Optional[int] = None,
@@ -427,7 +441,9 @@ class HTTPClient:
     async def disable_automated_security_fixes_for_repo(self, *, owner: str, repo: str):
         return await self.request("DELETE", f"/repos/{owner}/{repo}/automated-security-fixes")
 
-    async def list_codeowners_erros_for_repo(self, *, owner: str, repo: str, ref: Optional[str] = None):
+    async def list_codeowners_erros_for_repo(
+        self, *, owner: str, repo: str, ref: Optional[str] = None
+    ):
         params = {}
 
         if ref:
@@ -470,7 +486,9 @@ class HTTPClient:
     async def list_repo_languages_for_repo(self, *, owner: str, repo: str):
         return await self.request("GET", f"/repos/{owner}/{repo}/languages")
 
-    async def list_tags_for_repo(self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def list_tags_for_repo(
+        self, *, owner: str, repo: str, per_page: Optional[int] = None, page: Optional[int] = None
+    ):
         params = {}
 
         if per_page:
@@ -507,7 +525,9 @@ class HTTPClient:
     async def replace_all_topics_for_repo(self, *, owner: str, repo: str, names: List[str]):
         return await self.request("PUT", f"/repos/{owner}/{repo}/topics", json={"names": names})
 
-    async def transfer_repo(self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None):
+    async def transfer_repo(
+        self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None
+    ):
         data: Dict[str, Union[str, List[int]]] = {
             "new_owner": new_owner,
         }
@@ -547,7 +567,9 @@ class HTTPClient:
         if private:
             data["private"] = private
 
-        return await self.request("POST", f"/repos/{template_owner}/{template_repo}/generate", json=data)
+        return await self.request(
+            "POST", f"/repos/{template_owner}/{template_repo}/generate", json=data
+        )
 
     async def list_public_repos(self, *, since: Optional[int] = None):
         params = {}
@@ -660,7 +682,9 @@ class HTTPClient:
         self,
         *,
         username: str,
-        type: Optional[Literal["all", "public", "private", "forks", "sources", "member", "internal"]] = None,
+        type: Optional[
+            Literal["all", "public", "private", "forks", "sources", "member", "internal"]
+        ] = None,
         sort: Optional[Literal["created", "updated", "pushed", "full_name"]] = None,
         direction: Optional[Literal["asc", "desc"]] = None,
         per_page: Optional[int] = None,
@@ -684,7 +708,11 @@ class HTTPClient:
     # === GISTS === #
 
     async def list_logged_in_user_gists(
-        self, *, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
+        self,
+        *,
+        since: Optional[str] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
     ):
         params = {}
 
@@ -697,7 +725,9 @@ class HTTPClient:
 
         return await self.request("GET", "/gists", params=params)
 
-    async def create_gist(self, *, description: Optional[str] = None, files: List[File], public: Optional[bool] = None):
+    async def create_gist(
+        self, *, description: Optional[str] = None, files: List[File], public: Optional[bool] = None
+    ):
         data: Dict[str, Union[str, bool, Dict[str, str]]] = {
             "files": {f.name: f.read() for f in files},
         }
@@ -710,7 +740,11 @@ class HTTPClient:
         return await self.request("POST", "/gists", json=data)
 
     async def list_public_gists(
-        self, *, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
+        self,
+        *,
+        since: Optional[str] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
     ):
         params = {}
 
@@ -724,7 +758,11 @@ class HTTPClient:
         return await self.request("GET", "/gists/public", params=params)
 
     async def list_starred_gists(
-        self, *, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
+        self,
+        *,
+        since: Optional[str] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
     ):
         params = {}
 
@@ -740,7 +778,9 @@ class HTTPClient:
     async def get_gist(self, *, gist_id: str):
         return await self.request("GET", f"/gists/{gist_id}")
 
-    async def update_gist(self, *, gist_id: str, description: Optional[str] = None, files: Optional[List[File]] = None):
+    async def update_gist(
+        self, *, gist_id: str, description: Optional[str] = None, files: Optional[List[File]] = None
+    ):
         if not files:
             files = []
 
@@ -756,7 +796,9 @@ class HTTPClient:
     async def delete_gist(self, *, gist_id: str):
         return await self.request("DELETE", f"/gists/{gist_id}")
 
-    async def list_commits_for_gist(self, *, gist_id: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def list_commits_for_gist(
+        self, *, gist_id: str, per_page: Optional[int] = None, page: Optional[int] = None
+    ):
         params = {}
 
         if per_page:
@@ -766,7 +808,9 @@ class HTTPClient:
 
         return await self.request("GET", f"/gists/{gist_id}/commits", params=params)
 
-    async def list_forks_for_gist(self, *, gist_id: str, per_page: Optional[int] = None, page: Optional[int] = None):
+    async def list_forks_for_gist(
+        self, *, gist_id: str, per_page: Optional[int] = None, page: Optional[int] = None
+    ):
         params = {}
 
         if per_page:
@@ -792,7 +836,12 @@ class HTTPClient:
         return await self.request("GET", f"/gists/{gist_id}/{sha}")
 
     async def list_user_gists(
-        self, *, username: str, since: Optional[str] = None, per_page: Optional[int] = None, page: Optional[int] = None
+        self,
+        *,
+        username: str,
+        since: Optional[str] = None,
+        per_page: Optional[int] = None,
+        page: Optional[int] = None,
     ):
         params = {}
 

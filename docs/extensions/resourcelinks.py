@@ -15,7 +15,13 @@ from sphinx.util.typing import RoleFunction
 
 def make_link_role(resource_links: Dict[str, str]) -> RoleFunction:
     def role(
-        typ: str, rawtext: str, text: str, lineno: int, inliner: Inliner, options: Dict = {}, content: List[str] = []
+        typ: str,
+        rawtext: str,
+        text: str,
+        lineno: int,
+        inliner: Inliner,
+        options: Dict = {},
+        content: List[str] = [],
     ) -> Tuple[List[Node], List[system_message]]:
 
         text = utils.unescape(text)

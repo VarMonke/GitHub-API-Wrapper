@@ -25,5 +25,7 @@ class ExceptionHierarchyDirective(Directive):
 
 
 def setup(app):
-    app.add_node(exception_hierarchy, html=(visit_exception_hierarchy_node, depart_exception_hierarchy_node))
+    app.add_node(
+        exception_hierarchy, html=(visit_exception_hierarchy_node, depart_exception_hierarchy_node)
+    )
     app.add_directive("exception_hierarchy", ExceptionHierarchyDirective)
