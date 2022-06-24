@@ -10,6 +10,20 @@ combine_star = true
 
 [tool.pyright]
 pythonVersion = "3.8"
+include = [
+    "github",
+    "github/internals",
+    "github/types",
+    "github/objects"
+]
+exclude = [
+    "**/__pycache__",
+    "build",
+    "dist",
+    "docs",
+    "venv",
+    "setup.py"
+]
 typeCheckingMode = "basic"
 strictListInference = true
 strictDictionaryInference = true

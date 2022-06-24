@@ -7,7 +7,7 @@ import logging
 import platform
 import time
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Awaitable, Dict, List, Literal, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Any, Awaitable, Dict, List, Literal, NamedTuple, Optional, Union
 
 from aiohttp import ClientSession, TraceConfig
 
@@ -89,6 +89,8 @@ class Ratelimits(NamedTuple):
 class HTTPClient:
     __session: ClientSession
     _rates: Ratelimits
+    _last_ping: float
+    _latency: float
 
     def __new__(
         cls,
@@ -103,7 +105,7 @@ class HTTPClient:
     async def __async_init(
         cls,
         *,
-        headers: Optional[Dict[str, Union[str, int]]] = None,
+        headers: Optional[Dict[str, str]] = None,
         auth: Optional[BasicAuth] = None,
     ) -> Self:
         self = super(cls, cls).__new__(cls)
@@ -131,7 +133,7 @@ class HTTPClient:
             if self.ratelimited:
                 log.info(
                     "Ratelimit exceeded, trying again in"
-                    f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"  # type: ignore
+                    f" {human_readable_time_until(self._rates.reset_time - datetime.now(timezone.utc))} (URL: {params.url},"
                     f" method: {params.method})"
                 )
 
@@ -187,7 +189,7 @@ class HTTPClient:
 
         return inner()
 
-    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], path: str, /, **kwargs):
+    async def request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], path: str, /, **kwargs: Any):
         async with self.__session.request(method, f"https://api.github.com{path}", **kwargs) as request:
             if 200 <= request.status <= 299:
                 return await request.json()
@@ -301,7 +303,7 @@ class HTTPClient:
         delete_branch_on_merge: Optional[bool] = None,
         use_squash_pr_title_as_default: Optional[bool] = None,
     ):
-        data = {
+        data: Dict[str, Union[str, bool, int]] = {
             "name": name,
         }
 
@@ -505,7 +507,7 @@ class HTTPClient:
         return await self.request("PUT", f"/repos/{owner}/{repo}/topics", json={"names": names})
 
     async def transfer_repo(self, *, owner: str, repo: str, new_owner: str, team_ids: Optional[List[int]] = None):
-        data = {
+        data: Dict[str, Union[str, List[int]]] = {
             "new_owner": new_owner,
         }
 
@@ -533,7 +535,7 @@ class HTTPClient:
         include_all_branches: Optional[bool] = None,
         private: Optional[bool] = None,
     ):
-        data = {
+        data: Dict[str, Union[str, bool]] = {
             "name": name,
         }
 
@@ -612,7 +614,7 @@ class HTTPClient:
         has_downloads: Optional[bool] = None,
         is_template: Optional[bool] = None,
     ):
-        data = {
+        data: Dict[str, Union[str, bool, int]] = {
             "name": name,
         }
 
@@ -695,8 +697,8 @@ class HTTPClient:
         return await self.request("GET", "/gists", params=params)
 
     async def create_gist(self, *, description: Optional[str] = None, files: List[File], public: Optional[bool] = None):
-        data = {
-            files: {f.name: f.read() for f in files},
+        data: Dict[str, Union[str, bool, Dict[str, str]]] = {
+            "files": {f.name: f.read() for f in files},
         }
 
         if description:
@@ -737,8 +739,11 @@ class HTTPClient:
     async def get_gist(self, *, gist_id: str):
         return await self.request("GET", f"/gists/{gist_id}")
 
-    async def update_gist(self, *, gist_id: str, description: Optional[str] = None, files: List[File] = None):
-        data = {
+    async def update_gist(self, *, gist_id: str, description: Optional[str] = None, files: Optional[List[File]] = None):
+        if not files:
+            files = []
+
+        data: Dict[str, Union[str, Dict[str, str]]] = {
             "files": {f.name: f.read() for f in files},
         }
 
