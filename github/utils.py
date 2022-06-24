@@ -36,5 +36,5 @@ def bytes_to_b64(content: str, /) -> str:
 
 
 def error_from_request(request: ClientResponse, /) -> BaseHTTPError:
-    # TODO: make errors specific
+    # TODO: Make specific errrors
     return HTTPError(request)

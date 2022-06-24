@@ -33,6 +33,58 @@ class Ratelimits(NamedTuple):
     reset_time: Optional[datetime]
     last_request: Optional[datetime]
 
+# ========= TODO ========= #
+# Make a good paginator
+# Make objects for all API Types
+# Make the requests return TypedDicts with those objects
+# Make specific errrors
+# Make route /users/{username}/hovercard
+# Make it so an error gets raised when the cooldown is reached
+
+# === ROUTES CHECKLIST === #
+# Actions
+# Activity
+# Apps
+# Billing
+# Branches
+# Checks
+# Codes of conduct
+# Code Scanning
+# Codespaces
+# Collaborators
+# Commits
+# Dependabot
+# Dependency Graph
+# Deploy keys
+# Deployments
+# Emojis
+# Enterprise administration
+# Gists                      DONE
+# Git database
+# Gitignore
+# Interactions
+# Issues
+# Licenses
+# Markdown
+# Meta
+# Metrics
+# Migrations
+# OAuth authorizations
+# Organizations
+# Packages
+# Pages
+# Projects
+# Pulls
+# Rate limit
+# Reactions
+# Releases
+# Repositories               DONE
+# SCIM
+# Search
+# Teams
+# Users                      DONE
+# Webhooks
+
 
 class HTTPClient:
     __session: ClientSession
@@ -196,7 +248,7 @@ class HTTPClient:
         return await self.request("GET", f"/users/{username}")
 
     # TODO: /users/{username}/hovercard
-    # idk what to name it
+    # IDK what to name it
 
     # === REPOS === #
 
