@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__all__ = ("human_readable_time_until", "str_to_datetime", "repr_dt", "bytes_to_b64", "error_from_request")
+
 from base64 import b64encode
 from typing import TYPE_CHECKING, Optional
 
@@ -11,8 +13,6 @@ if TYPE_CHECKING:
     from aiohttp import ClientResponse
 
     from .errors import BaseHTTPError
-
-__all__ = ("human_readable_time_until", "str_to_datetime", "repr_dt", "bytes_to_b64", "error_from_request")
 
 
 def human_readable_time_until(td: timedelta, /) -> str:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__all__ = ("GitHubError", "BaseHTTPError", "HTTPError", "RatelimitReached")
+
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
