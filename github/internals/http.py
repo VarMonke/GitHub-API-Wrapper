@@ -25,7 +25,7 @@ __all__ = ("HTTPClient",)
 log = logging.getLogger("github")
 
 
-class Ratelimit(NamedTuple):
+class Ratelimits(NamedTuple):
     remaining: Optional[int]
     used: Optional[int]
     total: Optional[int]
@@ -35,7 +35,7 @@ class Ratelimit(NamedTuple):
 
 class HTTPClient:
     __session: ClientSession
-    _rates: Ratelimit
+    _rates: Ratelimits
 
     def __new__(
         cls,
@@ -64,7 +64,7 @@ class HTTPClient:
             f" {__version__} CPython/{platform.python_version()} aiohttp/{__version__}",
         )
 
-        self._rates = Ratelimit(None, None, None, None, None)
+        self._rates = Ratelimits(None, None, None, None, None)
         self.__headers = headers
         self.__auth = auth
 
@@ -90,7 +90,7 @@ class HTTPClient:
             """After-request hook to adjust remaining requests on this time frame."""
             headers = params.response.headers
 
-            self._rates = Ratelimit(
+            self._rates = Ratelimits(
                 int(headers["X-RateLimit-Remaining"]),
                 int(headers["X-RateLimit-Used"]),
                 int(headers["X-RateLimit-Limit"]),
