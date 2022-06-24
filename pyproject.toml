@@ -1,3 +1,6 @@
+[tool.poetry]
+name = "GitHub-API-Wrapper"
+
 [tool.black]
 line-length = 100
 preview = true  # better formatting basically

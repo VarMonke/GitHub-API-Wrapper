@@ -68,7 +68,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "github-wrapper"
+project = "GitHub-API-Wrapper"
 copyright = "2022-present, VarMonke, sudosnok & contributors"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -261,7 +261,7 @@ html_search_scorer = "_static/scorer.js"
 html_js_files = ["custom.js", "settings.js", "copy.js", "sidebar.js"]
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "github-wrapper.doc"
+htmlhelp_basename = "GitHub-API-Wrapper.doc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -282,8 +282,8 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "github-wrapper.tex",
-        "github-wrapper Documentation",
+        "GitHub-API-Wrapper.tex",
+        "GitHub-API-Wrapper Documentation",
         "VarMonke, sudosnok & contributors",
         "manual",
     ),
@@ -317,8 +317,8 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        "github-wrapper",
-        "github-wrapper Documentation",
+        "GitHub-API-Wrapper",
+        "GitHub-API-Wrapper Documentation",
         ["VarMonke, sudosnok & contributors"],
         1,
     )
@@ -336,10 +336,10 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        "github-wrapper",
-        "github-wrapper Documentation",
+        "GitHub-API-Wrapper",
+        "GitHub-API-Wrapper Documentation",
         "VarMonke & sudosnok",
-        "github-wrapper",
+        "GitHub-API-Wrapper",
         "One line description of project.",
         "Miscellaneous",
     ),
