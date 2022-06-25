@@ -338,7 +338,7 @@ texinfo_documents = [
         "index",
         "GitHub-API-Wrapper",
         "GitHub-API-Wrapper Documentation",
-        "VarMonke & sudosnok",
+        "VarMonke, sudosnok & contributors",
         "GitHub-API-Wrapper",
         "One line description of project.",
         "Miscellaneous",

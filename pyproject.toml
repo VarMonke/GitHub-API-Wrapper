@@ -1,5 +1,37 @@
 [tool.poetry]
-name = "GitHub-API-Wrapper"
+name = "github"
+version = "2.0.0a"
+description = "Easy to use Python wrapper for the GitHub API."
+authors = [ "VarMonke", "sudosnok", "contributors" ]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/Varmonke/GitHub-API-Wrapper"
+packages = [
+    { include = "github" }
+]
+keywords = [ "github", "sync", "async", "github-api" ]
+classifiers = [
+    "Typing :: Typed",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/Varmonke/GitHub-API-Wrapper/issues"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+aiohttp = "^3.8.1"
+typing-extensions = "*"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+flynt = "*"
+isort = "*"
+unimport = "*"
+
+[tool.poetry.scripts]
+lint = "unimport ./ --gitignore -r --ignore-init; isort ./; black ./; flynt ./ -tc"
 
 [tool.black]
 line-length = 100
