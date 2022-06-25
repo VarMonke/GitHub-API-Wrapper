@@ -28,6 +28,7 @@ typing-extensions = "*"
 black = "*"
 flynt = "*"
 isort = "*"
+pylint = "*"
 unimport = "*"
 
 [tool.black]
