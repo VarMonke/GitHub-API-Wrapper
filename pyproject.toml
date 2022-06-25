@@ -30,9 +30,6 @@ flynt = "*"
 isort = "*"
 unimport = "*"
 
-[tool.poetry.scripts]
-lint = "unimport ./ --gitignore -r --ignore-init; isort ./; black ./; flynt ./ -tc"
-
 [tool.black]
 line-length = 100
 preview = true  # better formatting basically
