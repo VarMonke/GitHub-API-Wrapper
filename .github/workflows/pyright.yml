@@ -22,7 +22,7 @@ jobs:
       - name: Install PyRight & Dependencies
         run: |
           pip install -U poetry pyright
-          pip install --no-dev
+          poetry install --no-dev
 
       - name: Run PyRight
         run: pyright ./
