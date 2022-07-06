@@ -17,7 +17,6 @@ def make_link_role(resource_links: Dict[str, str]) -> RoleFunction:
     def role(
         typ: str, rawtext: str, text: str, lineno: int, inliner: Inliner, options: Dict = {}, content: List[str] = []
     ) -> Tuple[List[Node], List[system_message]]:
-
         text = utils.unescape(text)
         has_explicit_title, title, key = split_explicit_title(text)
         full_url = resource_links[key]
