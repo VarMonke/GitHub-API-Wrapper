@@ -31,6 +31,7 @@ To install the library, run the following command:
 On Linux
 
 .. code:: ssh
+  #On Debian, etc.
   sudo apt install python3-aiohttp
 Quick Example
 -------------
