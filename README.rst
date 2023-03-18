@@ -27,7 +27,11 @@ To install the library, run the following command:
   
   # On Windows
   py -m pip install -U git+https://github.com/VarMonke/Github-Api-Wrapper
-  
+
+On Linux
+ ..code::ssh
+ 
+ sudo apt install python3-aiohttp
 Quick Example
 -------------
   
