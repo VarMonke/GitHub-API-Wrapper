@@ -131,6 +131,7 @@ pygments_style = 'friendly'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 # keep_warnings = False
 
+
 # Ignore warnings about inconsistent order and/or count of references in translated messages.
 # This makes no sense, different languages can have different word order...
 def _i18n_warning_filter(record: logging.LogRecord) -> bool:
