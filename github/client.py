@@ -110,12 +110,10 @@ class GHClient:
         return f'<Client has_auth={bool(self.__auth)}>'
 
     @overload
-    def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]:
-        ...
+    def check_limits(self, as_dict: Literal[True] = True) -> Dict[str, Union[str, int]]: ...
 
     @overload
-    def check_limits(self, as_dict: Literal[False] = False) -> List[str]:
-        ...
+    def check_limits(self, as_dict: Literal[False] = False) -> List[str]: ...
 
     def check_limits(self, as_dict: bool = False) -> Union[Dict[str, Union[str, int]], List[str]]:
         """Returns the remaining number of API calls per timeframe.
