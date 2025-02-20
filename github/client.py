@@ -174,14 +174,12 @@ class GHClient:
         self.has_started = True
         return self
 
-    def _cache(
-        self: Self, *, type: str
-    ) -> Callable[
+    def _cache(self: Self, *, type: str) -> Callable[
         [Callable[Concatenate[Self, P], Awaitable[T]]],
         Callable[Concatenate[Self, P], Awaitable[Optional[Union[T, User, Repository]]]],
     ]:
         def wrapper(
-            func: Callable[Concatenate[Self, P], Awaitable[T]]
+            func: Callable[Concatenate[Self, P], Awaitable[T]],
         ) -> Callable[Concatenate[Self, P], Awaitable[Optional[Union[T, User, Repository]]]]:
             @functools.wraps(func)
             async def wrapped(self: Self, *args: P.args, **kwargs: P.kwargs) -> Optional[Union[T, User, Repository]]:
